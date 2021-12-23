@@ -14,23 +14,23 @@ import {
 import Example from './Example';
 
 export const MyHeadlessTask = async () => {
-  // const month = new Date().getMonth() + 1;
-  //     const year = new Date().getFullYear();
-  //     const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
+  const month = new Date().getMonth() + 1;
+  const year = new Date().getFullYear();
+  const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
   store.dispatch(fetchPraysRequest()); //{
 
   axios
-    .get('https://jsonplaceholder.typicode.com/users')
+    .get(url2)
     .then(response => {
       const json = response.data;
-      // const {data} = {...json};
-      // const day = new Date().getDate();
-      // let data2 = data[day];
-      // let {timings} = {...data2};
-      // let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-
+      const {data} = {...json};
+      const day = new Date().getDate();
+      let data2 = data[day];
+      let {timings} = {...data2};
+      let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
+      const x = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
       Example.stopService();
-      store.dispatch(fetchPraysSuccess(json));
+      store.dispatch(fetchPraysSuccess(x));
     })
     .catch(error => {
       const errorMsg = error.message;

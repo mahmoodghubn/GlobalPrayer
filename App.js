@@ -5,7 +5,7 @@ import Hour from './components/Hour';
 import useFetch from './logic/useFetch';
 import buildUrl from './logic/buildUrl';
 import nextPray from './logic/nextPray';
-import notification from './logic/notification';
+// import {testSchedule} from './logic/notification';
 import BackgroundTimer from 'react-native-background-timer';
 import database, {select} from './logic/database';
 import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
@@ -18,18 +18,63 @@ import {MyHeadlessTask} from './index';
 
 const App = ({praysData, fetchPrays}) => {
   useEffect(() => {
-    // MyHeadlessTask();
+    PushNotification.configure({
+      onRegister: function (token) {
+        console.log('TOKEN:', token);
+      },
+      onNotification: function (notification) {
+        console.log('NOTIFICATION:', notification);
+        // notification.finish(PushNotificationIOS.FetchResult.NoData);
+      },
+      onAction: function (notification) {
+        console.log('ACTION:', notification.action);
+        console.log('NOTIFICATION:', notification);
+      },
+      onRegistrationError: function (err) {
+        console.error(err.message, err);
+      },
+      permissions: {
+        alert: true,
+        badge: true,
+        sound: true,
+      },
+      popInitialNotification: true,
+      requestPermissions: Platform.OS === 'ios',
+    });
+  }, []);
+  const prayAlarm = key => {
+    switch (key) {
+      case 'Fajr':
+        return fajrAlarm;
+      case 'Sunrise':
+        return sunriseAlarm;
+      case 'Dhuhr':
+        return dhuhrAlarm;
+      case 'Asr':
+        return asrAlarm;
+      case 'Maghrib':
+        return magribAlarm;
+      case 'Isha':
+        return ishaAlarm;
+    }
+  };
+  const [asrAlarm, setAsrAlarm] = useState(false);
+  const [magribAlarm, setMagribAlarm] = useState(false);
+  const [ishaAlarm, setIshaAlarm] = useState(false);
+  const [dhuhrAlarm, setDhuhrAlarm] = useState(false);
+  const [sunriseAlarm, setSunriseAlarm] = useState(false);
+  const [fajrAlarm, setFajrAlarm] = useState(false);
+  useEffect(() => {
     Example.startService();
   }, []);
-
   useEffect(() => {
     //taking alarm data from async storage and put it in usestate
-    getPrayValue('FAJR', setFajrAlarm);
-    getPrayValue('SUNRISE', setSunriseAlarm);
-    getPrayValue('DHUHR', setDhuhrAlarm);
-    getPrayValue('ASR', setAsrAlarm);
-    getPrayValue('MAGRIB', setMagribAlarm);
-    getPrayValue('ISHA', setIshaAlarm);
+    getPrayValue('Fajr', setFajrAlarm);
+    getPrayValue('Sunrise', setSunriseAlarm);
+    getPrayValue('Dhuhr', setDhuhrAlarm);
+    getPrayValue('Asr', setAsrAlarm);
+    getPrayValue('Maghrib', setMagribAlarm);
+    getPrayValue('Isha', setIshaAlarm);
   }, []);
   const getPrayValue = async (pray, setPrayAlarm) => {
     try {
@@ -41,11 +86,41 @@ const App = ({praysData, fetchPrays}) => {
       console.log(error.message);
     }
   };
+  const setAlarmOfPray = (pray, prayTime) => {
+    let alarm;
+    switch (pray) {
+      case 'Fajr':
+        AsyncStorage.setItem(pray, JSON.stringify(!fajrAlarm));
+        setFajrAlarm(alarm => !alarm);
+        alarm = fajrAlarm;
+        break;
+      case 'Sunrise':
+        AsyncStorage.setItem(pray, JSON.stringify(!sunriseAlarm));
+        setSunriseAlarm(alarm => !alarm);
+        alarm = sunriseAlarm;
+        break;
+      case 'Dhuhr':
+        AsyncStorage.setItem(pray, JSON.stringify(!dhuhrAlarm));
+        setDhuhrAlarm(alarm => !alarm);
+        alarm = dhuhrAlarm;
+        break;
+      case 'Asr':
+        AsyncStorage.setItem(pray, JSON.stringify(!asrAlarm));
+        setAsrAlarm(alarm => !alarm);
+        alarm = asrAlarm;
+        break;
+      case 'Maghrib':
+        AsyncStorage.setItem(pray, JSON.stringify(!magribAlarm));
+        setMagribAlarm(alarm => !alarm);
+        alarm = magribAlarm;
+        break;
+      case 'Isha':
+        AsyncStorage.setItem(pray, JSON.stringify(!ishaAlarm));
+        setIshaAlarm(alarm => !alarm);
+        alarm = ishaAlarm;
+    }
 
-  const setAlarmOfPray = (pray, prayTime, setAlarm, alarm) => {
-    AsyncStorage.setItem(pray, JSON.stringify(!alarm));
-    setAlarm(alarm => !alarm);
-    if (!alarm) {
+    if (!alarm && calcualtePrayingTime(prayTime)) {
       // save alarm values in shared perferences or database
       testSchedule(
         // add seconds to calculations for the exact time
@@ -58,37 +133,64 @@ const App = ({praysData, fetchPrays}) => {
       // delete alarm;
     }
   };
+  const testSchedule = (date, pray) => {
+    console.log('testSchedule ');
+
+    PushNotification.createChannel(
+      {
+        channelId: 'channel-id', // (required)
+        channelName: 'My channel', // (required)
+        channelDescription: 'A channel to categorise your notifications', // (optional) default: undefined.
+        playSound: false, // (optional) default: true
+        soundName: 'default', // (optional) See `soundName` parameter of `localNotification` function
+        importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
+        vibrate: false, // (optional) default: true. Creates the default vibration pattern if true.
+      },
+      created => console.log(`createChannel returned '${created}'`), // (optional) callback returns whether the channel was created, false means it already existed.
+    );
+    PushNotification.localNotificationSchedule({
+      channelId: 'channel-id', // (required) channelId, if the channel doesn't exist, notification will not trigger.
+      title: 'My Notification Title', // (optional)
+      message: pray, // (required)
+      date: date, // in 60 secs
+      allowWhileIdle: false, // (optional) set notification to work while on doze, default: false
+      repeatTime: 1, // (optional) Increment of configured repeatType. Check 'Repeating Notifications' section for more info.
+    });
+  };
+
   //problem in first installion
   const url = buildUrl(); //this every month
   const [dayPray, setDayPray] = useState('');
   const {loading, monthData} = useFetch(url); //add loading functionality
   database(monthData);
-
   const {FAJR, SUNRISE, DHUHUR, ASR, MAGRIB, ISHA} = {...dayPray};
-  const [asrAlarm, setAsrAlarm] = useState(false);
-  const [magribAlarm, setMagribAlarm] = useState(false);
-  const [ishaAlarm, setIshaAlarm] = useState(false);
-  const [dhuhrAlarm, setDhuhrAlarm] = useState(false);
-  const [sunriseAlarm, setSunriseAlarm] = useState(false);
-  const [fajrAlarm, setFajrAlarm] = useState(false);
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState();
-  useEffect(() => {
-    const day = new Date().getDate();
-    if (!dayPray) {
-      select(day, setDayPray);
-    } //make sure this functions
-    else if (nextTimeName === 'FAJR') {
-      select(day + 1, setDayPray);
-    }
-  }, [nextTimeName]);
-  let prop;
-  useEffect(() => {
-    if (dayPray) {
-      calculateNextPray();
-    }
-  }, [dayPray]);
+  // useEffect(() => {
+  //   const day = new Date().getDate();
+  //   if (!dayPray) {
+  //     select(day, setDayPray);
+  //   } //make sure this functions
+  //   else if (nextTimeName === 'FAJR') {
+  //     select(day + 1, setDayPray);
+  //   }
+  // }, [nextTimeName]);
+  // let prop;
+  // useEffect(() => {
+  //   if (dayPray) {
+  //     calculateNextPray();
+  //   }
+  // }, [dayPray]);
+  const calcualtePrayingTime = prayTime => {
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+    const time = minute + hour * 60;
+    const prayHour = parseInt(prayTime.slice(0, 2));
+    const prayMinute = parseInt(prayTime.slice(3, 5));
+    const namazVakti = prayHour * 60 + prayMinute;
+    return namazVakti > time;
+  };
 
   const startTimer = () => {
     BackgroundTimer.runBackgroundTimer(() => {
@@ -118,12 +220,12 @@ const App = ({praysData, fetchPrays}) => {
     if (remain < 0) setSeconds(-remain);
     else setSeconds(remain);
   };
-  useEffect(() => {
-    startTimer();
-    return () => {
-      BackgroundTimer.stopBackgroundTimer(); //make sure we need background timer
-    };
-  }, [seconds]);
+  // useEffect(() => {
+  //   startTimer();
+  //   return () => {
+  //     BackgroundTimer.stopBackgroundTimer(); //make sure we need background timer
+  //   };
+  // }, [seconds]);
   return praysData.requestActionReducer.loading ? (
     <Text>loading</Text>
   ) : praysData.error ? (
@@ -133,9 +235,17 @@ const App = ({praysData, fetchPrays}) => {
       {praysData &&
         praysData.requestActionReducer &&
         praysData.requestActionReducer.prays &&
-        praysData.requestActionReducer.prays.map(pray => (
-          <Text>{pray.name}</Text>
-        ))}
+        Object.entries(praysData.requestActionReducer.prays).map(
+          ([key, val]) => (
+            <Pray
+              key={key}
+              pray={key}
+              time={val}
+              alarmValue={prayAlarm(key)}
+              onchangeAlarm={setAlarmOfPray.bind(this, key, val)}
+            />
+          ),
+        )}
     </View>
   );
 };
@@ -156,136 +266,7 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-{
-  /* <View>
-      <TouchableOpacity onPress={() => Example.startService()}>
-        <Text>Start</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Example.stopService()}>
-        <Text>Stop</Text>
-      </TouchableOpacity>
-    </View> */
-}
-//there are many calls for MyHeadlessTask
 export default connect(mapStateToProps, mapDispatchToProps)(App);
-// export default App;
-
-// const test = () => {
-//   PushNotification.createChannel(
-//     {
-//       channelId: 'channel-id', // (required)
-//       channelName: 'My channel', // (required)
-//       channelDescription: 'A channel to categorise your notifications', // (optional) default: undefined.
-//       playSound: false, // (optional) default: true
-//       soundName: 'default', // (optional) See `soundName` parameter of `localNotification` function
-//       importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
-//       vibrate: true, // (optional) default: true. Creates the default vibration pattern if true.
-//     },
-//     created => console.log(`createChannel returned '${created}'`), // (optional) callback returns whether the channel was created, false means it already existed.
-//   );
-//   PushNotification.localNotification({
-//     channelId: 'channel-id', // (required) channelId, if the channel doesn't exist, notification will not trigger.
-//     title: 'My Notification Title', // (optional)
-//     message: 'My Notification Message', // (required)
-//   });
-// };
 
 // <View style={styles.meanScreen}>
 //   <Hour nextPray={nextTimeName} nextPrayTime={nextTime} timer={seconds} />
-//   <Pray
-//     pray="fajr"
-//     time={FAJR}
-//     alarmValue={fajrAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'FAJR',
-//       FAJR,
-//       setFajrAlarm,
-//       fajrAlarm,
-//     )}
-//   />
-//   <Pray
-//     pray="sunrise"
-//     time={SUNRISE}
-//     alarmValue={sunriseAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'SUNRISE',
-//       SUNRISE,
-//       setSunriseAlarm,
-//       sunriseAlarm,
-//     )}
-//   />
-//   <Pray
-//     pray="dhuhr"
-//     time={DHUHUR}
-//     alarmValue={dhuhrAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'DHUHR',
-//       DHUHUR,
-//       setDhuhrAlarm,
-//       dhuhrAlarm,
-//     )}
-//   />
-//   <Pray
-//     pray="asr"
-//     time={ASR}
-//     alarmValue={asrAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'ASR',
-//       ASR,
-//       setAsrAlarm,
-//       asrAlarm,
-//     )}
-//   />
-//   <Pray
-//     pray="maghrib"
-//     time={MAGRIB}
-//     alarmValue={magribAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'MAGRIB',
-//       MAGRIB,
-//       setMagribAlarm,
-//       magribAlarm,
-//     )}
-//   />
-//   <Pray
-//     pray="isha"
-//     time={ISHA}
-//     alarmValue={ishaAlarm}
-//     onchangeAlarm={setAlarmOfPray.bind(
-//       this,
-//       'ISHA',
-//       ISHA,
-//       setIshaAlarm,
-//       ishaAlarm,
-//     )}
-//   />
-
-// <Pray
-//               pray="fajr"
-//               time={pray}
-//               alarmValue={fajrAlarm}
-//               onchangeAlarm={setAlarmOfPray.bind(
-//                 this,
-//                 'FAJR',
-//                 pray,
-//                 setFajrAlarm,
-//                 fajrAlarm,
-//               )}
-//             />
-
-//  praysData.loading ? (
-//    <Text>loading</Text>
-//  ) : praysData.error ? (
-//    <Text>{praysData.error}</Text>
-//  ) : (
-//    <View>
-//      {praysData &&
-//        praysData.prays &&
-//        praysData.prays.map(pray => <Text>{pray.date}</Text>)}
-//    </View>
-//  );
