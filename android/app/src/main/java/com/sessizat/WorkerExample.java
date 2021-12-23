@@ -8,8 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
-
-import com.facebook.react.bridge.ReactApplicationContext;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,13 +24,20 @@ public class WorkerExample extends Worker {
     @NotNull
     @Override
     public Result doWork() {
-        Log.d("Worker","startServiceMajmah");
-        // Data inputData = getInputData();
-        // String stringContext = inputData.getString("context");
-        // Gson gson = new Gson();
-        // ReactApplicationContext reactApplicationContext = gson.fromJson(stringContext, ReactApplicationContext.class);
-
         reactContext.startService(new Intent(reactContext, ExampleService.class));
+//        Date date = new Date();   // given date
+//        Calendar calendar = Calendar.getInstance(); // creates a new calendar instance
+//        calendar.setTime(date);   // assigns calendar to given date
+//        int minute =calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+//        int hour = calendar.get(Calendar.MINUTE);
+//        int sleepingTime = (24*60)-(minute + hour *60);
+//        int milli = (sleepingTime) * 60 *1000;
+//        try {
+//            Thread.sleep(milli);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
 
         return Result.success();
     }

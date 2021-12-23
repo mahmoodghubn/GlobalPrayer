@@ -13,31 +13,29 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import java.util.List;
+
 import android.util.Log;
 
 public class ExamplePackage implements ReactPackage {
 
-   @Override
+    @Override
 
-   public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
+    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
 
-                Log.d("ExamplePackage","createNativeModules");
+        return Arrays.<NativeModule>asList(
 
-       return Arrays.<NativeModule>asList(
+                new ExampleModule(reactContext)
 
-               new ExampleModule(reactContext)
+        );
 
-       );
+    }
 
-   }
+    @Override
 
-   @Override
+    public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
 
-   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-            Log.d("ExamplePackage","createViewManager");
+        return Collections.emptyList();
 
-       return Collections.emptyList();
-
-   }
+    }
 
 }

@@ -11,21 +11,18 @@ import android.util.Log;
 
 
 public class BootReceiver extends BroadcastReceiver {
-    
-    @Override
-    
-    public void onReceive(Context context, Intent intent) {
-       Log.d("sessizatBroadcastReceiver","before receiving ");
 
-   if(intent.getAction() == Intent.ACTION_BOOT_COMPLETED){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d("sessizatBroadcastReceiver","Starting the service in >=26 ");
-            context.startForegroundService(new Intent(context, ExampleService.class));
-            return;
+    @Override
+
+    public void onReceive(Context context, Intent intent) {
+
+        if (intent.getAction() == Intent.ACTION_BOOT_COMPLETED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(new Intent(context, ExampleService.class));
+                return;
+            }
+            context.startService(new Intent(context, ExampleService.class));
         }
-        Log.d("sessizatBroadcastReceiver","Starting the service in < 26 ");
-        context.startService(new Intent(context, ExampleService.class));
     }
-   }
 
 }

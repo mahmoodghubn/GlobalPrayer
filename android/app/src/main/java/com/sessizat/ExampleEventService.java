@@ -16,23 +16,22 @@ import android.util.Log;
 
 public class ExampleEventService extends HeadlessJsTaskService {
 
-   @Nullable
+    @Nullable
 
-   protected HeadlessJsTaskConfig getTaskConfig(Intent intent) {
-                Log.d("ExampleEventService","getTaskConfig");
+    protected HeadlessJsTaskConfig getTaskConfig(Intent intent) {
 
-       Bundle extras = intent.getExtras();
+        Bundle extras = intent.getExtras();
 
-       return new HeadlessJsTaskConfig(
+        return new HeadlessJsTaskConfig(
 
-               "Example",
+                "Example",
 
-               extras != null ? Arguments.fromBundle(extras) : Arguments.createMap(),
+                extras != null ? Arguments.fromBundle(extras) : Arguments.createMap(),
 
-               5000,
+                5000,
 
-               true);
+                true);
 
-   }
+    }
 
 }
