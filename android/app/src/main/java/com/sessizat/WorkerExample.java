@@ -24,7 +24,11 @@ public class WorkerExample extends Worker {
     @NotNull
     @Override
     public Result doWork() {
+        Date date = new Date();   // given date
+        Log.d("aftercalling","mahmoodghubn");
+        Log.d("mahmoodghubn",date.toString());
         reactContext.startService(new Intent(reactContext, ExampleService.class));
+
 //        Date date = new Date();   // given date
 //        Calendar calendar = Calendar.getInstance(); // creates a new calendar instance
 //        calendar.setTime(date);   // assigns calendar to given date

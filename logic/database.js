@@ -11,6 +11,7 @@ const db = SQLite.openDatabase(
     console.log(error);
   },
 );
+
 const database = monthData => {
   useEffect(() => {
     createTable();
@@ -23,7 +24,7 @@ const database = monthData => {
       tx.executeSql(
         'CREATE TABLE IF NOT EXISTS ' +
           'PrayTable ' +
-          '(ID INTEGER PRIMARY KEY AUTOINCREMENT, FAJR INTEGER , SUNRISE INTEGER, DHUHUR INTEGER, ASR INTEGER, MAGRIB INTEGER, ISHA INTEGER)',
+          '(ID INTEGER PRIMARY KEY AUTOINCREMENT, Fajr INTEGER , Sunrise INTEGER, Dhuhr INTEGER, Asr INTEGER, Maghrib INTEGER, Isha INTEGER)',
         [],
         (tx, results) => {
           console.log('data base created succuessfully');
@@ -45,11 +46,11 @@ const database = monthData => {
     }
   };
 
-  const insert = async (FAJR, SUNRISE, DHUHUR, ASR, MAGRIB, ISHA) => {
+  const insert = async (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
     await db.transaction(async tx => {
       tx.executeSql(
-        'INSERT INTO PrayTable (FAJR,SUNRISE,DHUHUR,ASR,MAGRIB,ISHA) VALUES (?,?,?,?,?,?)',
-        [FAJR, SUNRISE, DHUHUR, ASR, MAGRIB, ISHA],
+        'INSERT INTO PrayTable (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) VALUES (?,?,?,?,?,?)',
+        [Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha],
         (tx, result) => {
           // console.log('data inserted successfully');
         },
@@ -60,38 +61,26 @@ const database = monthData => {
     });
   };
 };
-export function select(day, setDayPray): void {
-  db.transaction(tx => {
-    tx.executeSql(
-      `SELECT FAJR, SUNRISE, DHUHUR, ASR, MAGRIB, ISHA FROM PrayTable WHERE ID = ${day}`,
-      [],
-      (sqlTxn: SQLTransaction, res: SQLResultSet) => {
-        const x = res.rows.item(0);
-        setDayPray(x);
-        console.log('getting data from select');
-        console.log(res.rows.item(0));
-      },
-      error => {
-        console.log('error message' + error.message);
-      },
-    );
-  });
-  //   } catch (error) {
-  //     console.log('new werrororo');
-  //     console.log(error);
-  //   }
-}
-export default database;
 
-//   db.transaction(tx => {
-//     tx.executeSql(
-//       'DELETE FROM PrayTable',
-//       [],
-//       () => {
-//         /*some code*/
-//       },
-//       error => {
-//         console.log(error);
-//       },
-//     );
-//   });
+export const select = day => {
+  return new Promise(function (resolve, reject) {
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha FROM PrayTable WHERE ID = ${day}`,
+        [],
+        (sqlTxn: SQLTransaction, res: SQLResultSet) => {
+          const dayPray = res.rows.item(0);
+          console.log('getting data from select');
+          console.log(dayPray);
+          resolve(dayPray);
+        },
+        error => {
+          reject(error);
+          console.log('error message' + error.message);
+        },
+      );
+    });
+  });
+};
+
+export default database;

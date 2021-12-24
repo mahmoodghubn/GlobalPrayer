@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 
 import com.facebook.react.bridge.ReactMethod;
 
+import androidx.work.Constraints;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -51,11 +52,16 @@ public class ExampleModule extends ReactContextBaseJavaModule {
         int minute =calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
         int hour = calendar.get(Calendar.MINUTE);
         int delay = (24*60)-(minute + hour *60);
-        
+
+//        Constraints constraints = new Constraints.Builder()
+//                .setRequiresCharging(true)
+//                .build();
+
         OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(WorkerExample.class)
                 .build();
         PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(WorkerExample.class,1, TimeUnit.DAYS)
                 .setInitialDelay(delay,TimeUnit.MINUTES)
+//                .setConstraints(constraints)
                 .build();
 
         WorkManager.getInstance(this.reactContext).enqueue(oneTimeWorkRequest);
