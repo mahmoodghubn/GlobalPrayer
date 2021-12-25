@@ -169,6 +169,22 @@ const App = ({praysData, fetchPrays}) => {
     }
   };
 
+  const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  const returnOrdered = praysData => {
+    // const prays = praysData.prays;
+    // console.log('praysData');
+    // console.log(praysData);
+    // console.log(prays);
+    return [
+      praysData.Fajr,
+      praysData.Sunrise,
+      praysData.Dhuhr,
+      praysData.Asr,
+      praysData.Maghrib,
+      praysData.Isha,
+    ];
+  };
+
   return praysData.loading ? (
     <Text>loading</Text>
   ) : praysData.error ? (
@@ -180,13 +196,17 @@ const App = ({praysData, fetchPrays}) => {
       </View>
       {praysData &&
         praysData.prays &&
-        Object.entries(praysData.prays).map(([key, val]) => (
+        returnOrdered(praysData.prays).map((element, index) => (
           <Pray
-            key={key}
-            pray={key}
-            time={val}
-            alarmValue={prayAlarm(key)}
-            onchangeAlarm={setAlarmOfPray.bind(this, key, val)}
+            key={index}
+            pray={praysNames[index]}
+            time={element}
+            alarmValue={prayAlarm(praysNames[index])}
+            onchangeAlarm={setAlarmOfPray.bind(
+              this,
+              praysNames[index],
+              element,
+            )}
           />
         ))}
     </View>
