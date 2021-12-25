@@ -12,54 +12,47 @@ const db = SQLite.openDatabase(
   },
 );
 
-const database = monthData => {
-  useEffect(() => {
-    createTable();
-    if (monthData) {
-      getMonthPrayingTimes(monthData);
-    }
-  }, [monthData]);
-  const createTable = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS ' +
-          'PrayTable ' +
-          '(ID INTEGER PRIMARY KEY AUTOINCREMENT, Fajr INTEGER , Sunrise INTEGER, Dhuhr INTEGER, Asr INTEGER, Maghrib INTEGER, Isha INTEGER)',
-        [],
-        (tx, results) => {
-          console.log('data base created succuessfully');
-        },
-        error => {
-          console.log('error' + error.message);
-        },
-      );
-    });
-  };
+export const createTable = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'CREATE TABLE IF NOT EXISTS ' +
+        'PrayTable ' +
+        '(ID INTEGER PRIMARY KEY AUTOINCREMENT, Fajr INTEGER , Sunrise INTEGER, Dhuhr INTEGER, Asr INTEGER, Maghrib INTEGER, Isha INTEGER)',
+      [],
+      (tx, results) => {
+        console.log('data base created succuessfully');
+      },
+      error => {
+        console.log('error' + error.message);
+      },
+    );
+  });
+};
 
-  const getMonthPrayingTimes = data => {
-    let mon = new Date().getMonth();
-    for (let i = 0; i < 30; i++) {
-      let data2 = data[i];
-      let {timings} = {...data2};
-      let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-      insert(Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);
-    }
-  };
+export const getMonthPrayingTimes = data => {
+  let mon = new Date().getMonth();
+  console.log('getMonthPrayingTimes');
 
-  const insert = async (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
-    await db.transaction(async tx => {
-      tx.executeSql(
-        'INSERT INTO PrayTable (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) VALUES (?,?,?,?,?,?)',
-        [Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha],
-        (tx, result) => {
-          // console.log('data inserted successfully');
-        },
-        error => {
-          console.log('error in inserting' + error.message);
-        },
-      );
-    });
-  };
+  for (let i = 0; i < 30; i++) {
+    let data2 = data[i];
+    let {timings} = {...data2};
+    let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
+    insert(Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);
+    console.log('inserting data in the database');
+  }
+};
+
+const insert = async (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
+  await db.transaction(async tx => {
+    tx.executeSql(
+      'INSERT INTO PrayTable (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) VALUES (?,?,?,?,?,?)',
+      [Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha],
+      (tx, result) => {},
+      error => {
+        console.log('error in inserting' + error.message);
+      },
+    );
+  });
 };
 
 export const select = day => {
@@ -70,8 +63,6 @@ export const select = day => {
         [],
         (sqlTxn: SQLTransaction, res: SQLResultSet) => {
           const dayPray = res.rows.item(0);
-          console.log('getting data from select');
-          console.log(dayPray);
           resolve(dayPray);
         },
         error => {
@@ -83,4 +74,17 @@ export const select = day => {
   });
 };
 
-export default database;
+export const deleteTable = async () => {
+  try {
+    db.transaction(tx => {
+      tx.executeSql(
+        'DROP TABLE IF EXISTS PrayTable',
+        [],
+        () => {},
+        error => console.log(error),
+      );
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};

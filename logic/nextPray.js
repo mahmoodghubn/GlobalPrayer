@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import BackgroundTimer from 'react-native-background-timer';
 
-const nextPray = props => {
+const nextPray = ({praysData}) => {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const time = minute + hour * 60;
@@ -11,46 +11,41 @@ const nextPray = props => {
     const x = prayHour * 60 + prayMinute;
     return prayHour * 60 + prayMinute;
   };
-  const {dayPray} = {...props};
-
-  let nextTime = dayPray.ISHA;
+  const prays = praysData.prays;
+  let nextTime = prays.Isha;
   let nextTimeName = 'Isha';
 
   switch (true) {
-    case time >= getTime(dayPray.ISHA) || time < getTime(dayPray.FAJR): {
-      nextTime = dayPray.FAJR;
-      nextTimeName = 'FAJR';
+    case time >= getTime(prays.Isha) || time < getTime(prays.Fajr): {
+      nextTime = prays.Fajr;
+      nextTimeName = 'Fajr';
       break;
     }
-
-    case time >= getTime(dayPray.MAGRIB): {
-      nextTime = dayPray.ISHA;
-      nextTimeName = 'ISHA';
+    case time >= getTime(prays.Maghrib): {
+      nextTime = prays.Isha;
+      nextTimeName = 'Isha';
       break;
     }
-    case time >= getTime(dayPray.ASR): {
-      nextTime = dayPray.MAGRIB;
-      nextTimeName = 'MAGRIB';
+    case time >= getTime(prays.Asr): {
+      nextTime = prays.Maghrib;
+      nextTimeName = 'Maghrib';
       break;
     }
-
-    case time >= getTime(dayPray.DHUHUR): {
-      nextTime = dayPray.ASR;
-      nextTimeName = 'ASR';
+    case time >= getTime(prays.Dhuhr): {
+      nextTime = prays.Asr;
+      nextTimeName = 'Asr';
       break;
     }
-    case time >= getTime(dayPray.SUNRISE): {
-      nextTime = dayPray.DHUHUR;
-      nextTimeName = 'DHUHUR';
+    case time >= getTime(prays.Sunrise): {
+      nextTime = prays.Dhuhr;
+      nextTimeName = 'Dhuhr';
       break;
     }
     default: {
-      nextTime = dayPray.SUNRISE;
-      nextTimeName = 'SUNRISE';
+      nextTime = prays.Sunrise;
+      nextTimeName = 'Sunrise';
     }
   }
-  return {nextTimeName, nextTime};
+  return {nextTime, nextTimeName};
 };
 export default nextPray;
-
-//calculate the taime remaining

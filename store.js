@@ -3,7 +3,7 @@ import {createAction, handleActions} from 'redux-actions';
 import thunk from 'redux-thunk';
 const appInitialState = {
   loading: false,
-  prays: [],
+  prays: {},
   error: '',
 };
 
@@ -15,7 +15,7 @@ export const fetchPraysRequest = createAction(FETCH_PRAYS_REQUEST);
 export const fetchPraysSuccess = createAction(FETCH_PRAYS_SUCCESS);
 export const fetchPraysFailure = createAction(FETCH_PRAYS_FAILURE);
 
-const requestActionReducer = handleActions(
+const actionReducer = handleActions(
   {
     [FETCH_PRAYS_REQUEST]: (state, {payload}) => ({
       ...state,
@@ -28,56 +28,15 @@ const requestActionReducer = handleActions(
     }),
     [FETCH_PRAYS_FAILURE]: (state, {payload}) => ({
       loading: false,
-      prays: [],
+      prays: {},
       error: payload,
     }),
   },
   appInitialState,
 );
-const rootReducer = combineReducers({
-  requestActionReducer,
-});
+// const rootReducer = combineReducers({
+//   actionReducer,
+// });
 
-const configureStore = () => createStore(rootReducer, applyMiddleware(thunk));
+const configureStore = () => createStore(actionReducer, applyMiddleware(thunk));
 export const store = configureStore();
-
-// successActionReducer,
-// failureActionReducer,
-// export const fetchPraysRequest = () => {
-//   return {
-//     type: FETCH_PRAYS_REQUEST,
-//   };
-// };
-// export const fetchPraysSuccess = users => {
-//   return {
-//     type: FETCH_PRAYS_SUCCESS,
-//     payload: users,
-//   };
-// };
-// export const fetchPraysFailure = error => {
-//   return {
-//     type: FETCH_PRAYS_FAILURE,
-//     payload: error,
-//   };
-// };
-// const reducer = (state = appInitialState, action) => {
-//   switch (action.type) {
-//     case FETCH_PRAYS_REQUEST:
-//       return {
-//         ...state,
-//         loading: true,
-//       };
-//     case FETCH_PRAYS_SUCCESS:
-//       return {
-//         loading: false,
-//         users: action.payload,
-//         error: '',
-//       };
-//     case FETCH_PRAYS_FAILURE:
-//       return {
-//         loading: false,
-//         users: [],
-//         error: action.payload,
-//       };
-//   }
-// };

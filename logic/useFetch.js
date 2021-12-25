@@ -8,6 +8,7 @@ const useFetch = url => {
       const response = await fetch(url);
       const json = await response.json();
       const {data} = await {...json};
+      console.log(data);
       setMonthData(data);
       setLoading(false);
     } catch (e) {

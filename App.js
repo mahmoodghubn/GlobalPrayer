@@ -2,46 +2,90 @@ import React, {useState, useEffect} from 'react';
 import type {Node} from 'react';
 import Pray from './components/Pray';
 import Hour from './components/Hour';
-import useFetch from './logic/useFetch';
-import buildUrl from './logic/buildUrl';
 import nextPray from './logic/nextPray';
-// import {testSchedule} from './logic/notification';
+import {testSchedule, pushNotifications} from './logic/notification';
 import BackgroundTimer from 'react-native-background-timer';
-import database, {select} from './logic/database';
 import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
-import SQLite from 'react-native-sqlite-storage';
-import PushNotification, {Importance} from 'react-native-push-notification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
 import {MyHeadlessTask} from './index';
 
 const App = ({praysData, fetchPrays}) => {
+  const [nextTime, setNextTime] = useState();
+  const [nextTimeName, setNextTimeName] = useState('');
+  const [seconds, setSeconds] = useState(0);
+
+  let intervalId;
   useEffect(() => {
-    PushNotification.configure({
-      onRegister: function (token) {
-        console.log('TOKEN:', token);
-      },
-      onNotification: function (notification) {
-        console.log('NOTIFICATION:', notification);
-        // notification.finish(PushNotificationIOS.FetchResult.NoData);
-      },
-      onAction: function (notification) {
-        console.log('ACTION:', notification.action);
-        console.log('NOTIFICATION:', notification);
-      },
-      onRegistrationError: function (err) {
-        console.error(err.message, err);
-      },
-      permissions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-      popInitialNotification: true,
-      requestPermissions: Platform.OS === 'ios',
-    });
+    startTimer();
+    return () => {
+      BackgroundTimer.clearInterval(intervalId); //only android
+    };
+  }, [seconds]);
+
+  const startTimer = () => {
+    intervalId = BackgroundTimer.setInterval(() => {
+      setSeconds(secs => {
+        if (secs > 0) {
+          return secs - 1;
+        } else if (Object.keys(praysData.prays).length) {
+          calculateNextPray();
+          return 0;
+        }
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (Object.keys(praysData.prays).length) {
+      //sometime bug found
+      console.log(Object.keys(praysData.prays).length);
+      calculateNextPray();
+    }
+  }, [praysData]);
+
+  const calculateNextPray = () => {
+    prop = nextPray({praysData});
+    setNextTime(prop.nextTime);
+    setNextTimeName(prop.nextTimeName);
+    const remain = getRemainSeconds(prop.nextTime);
+    if (remain < 0) setSeconds(-remain);
+    else setSeconds(remain);
+  };
+
+  const getRemainSeconds = pray => {
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+    const time = minute * 60 + hour * 3600;
+    const prayHour = parseInt(pray.slice(0, 2));
+    const prayMinute = parseInt(pray.slice(3, 5));
+    const remain = prayHour * 3600 + prayMinute * 60 - time;
+    return remain;
+  };
+
+  const calcualtePrayingTime = prayTime => {
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+    const time = minute + hour * 60;
+    const prayHour = parseInt(prayTime.slice(0, 2));
+    const prayMinute = parseInt(prayTime.slice(3, 5));
+    const namazVakti = prayHour * 60 + prayMinute;
+    return namazVakti > time;
+  };
+
+  useEffect(() => {
+    pushNotifications();
+    Example.startService();
+    //taking alarm data from async storage and put it in usestate
+    getPrayValue('Fajr', setFajrAlarm);
+    getPrayValue('Sunrise', setSunriseAlarm);
+    getPrayValue('Dhuhr', setDhuhrAlarm);
+    getPrayValue('Asr', setAsrAlarm);
+    getPrayValue('Maghrib', setMagribAlarm);
+    getPrayValue('Isha', setIshaAlarm);
   }, []);
+
   const prayAlarm = key => {
     switch (key) {
       case 'Fajr':
@@ -58,24 +102,14 @@ const App = ({praysData, fetchPrays}) => {
         return ishaAlarm;
     }
   };
+
   const [asrAlarm, setAsrAlarm] = useState(false);
   const [magribAlarm, setMagribAlarm] = useState(false);
   const [ishaAlarm, setIshaAlarm] = useState(false);
   const [dhuhrAlarm, setDhuhrAlarm] = useState(false);
   const [sunriseAlarm, setSunriseAlarm] = useState(false);
   const [fajrAlarm, setFajrAlarm] = useState(false);
-  useEffect(() => {
-    Example.startService();
-  }, []);
-  useEffect(() => {
-    //taking alarm data from async storage and put it in usestate
-    getPrayValue('Fajr', setFajrAlarm);
-    getPrayValue('Sunrise', setSunriseAlarm);
-    getPrayValue('Dhuhr', setDhuhrAlarm);
-    getPrayValue('Asr', setAsrAlarm);
-    getPrayValue('Maghrib', setMagribAlarm);
-    getPrayValue('Isha', setIshaAlarm);
-  }, []);
+
   const getPrayValue = async (pray, setPrayAlarm) => {
     try {
       const alarm = await AsyncStorage.getItem(pray);
@@ -86,6 +120,7 @@ const App = ({praysData, fetchPrays}) => {
       console.log(error.message);
     }
   };
+
   const setAlarmOfPray = (pray, prayTime) => {
     let alarm;
     switch (pray) {
@@ -126,126 +161,34 @@ const App = ({praysData, fetchPrays}) => {
         // add seconds to calculations for the exact time
         // this will not work for the current time if the current time is passed
         //customize notification
-        new Date(Date.now() + getRemainSeconds(prayTime) * 1000), //seconds - getRemainSeconds()) * 1000),
+        new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
         pray,
       );
     } else {
       // delete alarm;
     }
   };
-  const testSchedule = (date, pray) => {
-    console.log('testSchedule ');
 
-    PushNotification.createChannel(
-      {
-        channelId: 'channel-id', // (required)
-        channelName: 'My channel', // (required)
-        channelDescription: 'A channel to categorise your notifications', // (optional) default: undefined.
-        playSound: false, // (optional) default: true
-        soundName: 'default', // (optional) See `soundName` parameter of `localNotification` function
-        importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
-        vibrate: false, // (optional) default: true. Creates the default vibration pattern if true.
-      },
-      created => console.log(`createChannel returned '${created}'`), // (optional) callback returns whether the channel was created, false means it already existed.
-    );
-    PushNotification.localNotificationSchedule({
-      channelId: 'channel-id', // (required) channelId, if the channel doesn't exist, notification will not trigger.
-      title: 'My Notification Title', // (optional)
-      message: pray, // (required)
-      date: date, // in 60 secs
-      allowWhileIdle: false, // (optional) set notification to work while on doze, default: false
-      repeatTime: 1, // (optional) Increment of configured repeatType. Check 'Repeating Notifications' section for more info.
-    });
-  };
-
-  //problem in first installion
-  const url = buildUrl(); //this every month
-  const [dayPray, setDayPray] = useState('');
-  const {loading, monthData} = useFetch(url); //add loading functionality
-  database(monthData);
-  const {FAJR, SUNRISE, DHUHUR, ASR, MAGRIB, ISHA} = {...dayPray};
-  const [nextTime, setNextTime] = useState();
-  const [nextTimeName, setNextTimeName] = useState('');
-  const [seconds, setSeconds] = useState();
-  // useEffect(() => {
-  //   const day = new Date().getDate();
-  //   if (!dayPray) {
-  //     select(day, setDayPray);
-  //   } //make sure this functions
-  //   else if (nextTimeName === 'FAJR') {
-  //     select(day + 1, setDayPray);
-  //   }
-  // }, [nextTimeName]);
-  // let prop;
-  // useEffect(() => {
-  //   if (dayPray) {
-  //     calculateNextPray();
-  //   }
-  // }, [dayPray]);
-  const calcualtePrayingTime = prayTime => {
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute + hour * 60;
-    const prayHour = parseInt(prayTime.slice(0, 2));
-    const prayMinute = parseInt(prayTime.slice(3, 5));
-    const namazVakti = prayHour * 60 + prayMinute;
-    return namazVakti > time;
-  };
-
-  const startTimer = () => {
-    BackgroundTimer.runBackgroundTimer(() => {
-      setSeconds(secs => {
-        if (secs > 0) return secs - 1;
-        else if (dayPray) {
-          calculateNextPray();
-          return 0;
-        }
-      });
-    }, 1000);
-  };
-  const getRemainSeconds = pray => {
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute * 60 + hour * 3600;
-    const prayHour = parseInt(pray.slice(0, 2));
-    const prayMinute = parseInt(pray.slice(3, 5));
-    const remain = prayHour * 3600 + prayMinute * 60 - time;
-    return remain;
-  };
-  const calculateNextPray = () => {
-    prop = nextPray({dayPray});
-    setNextTime(prop.nextTime);
-    setNextTimeName(prop.nextTimeName);
-    const remain = getRemainSeconds(prop.nextTime);
-    if (remain < 0) setSeconds(-remain);
-    else setSeconds(remain);
-  };
-  // useEffect(() => {
-  //   startTimer();
-  //   return () => {
-  //     BackgroundTimer.stopBackgroundTimer(); //make sure we need background timer
-  //   };
-  // }, [seconds]);
-  return praysData.requestActionReducer.loading ? (
+  return praysData.loading ? (
     <Text>loading</Text>
   ) : praysData.error ? (
-    <Text>{praysData.requestActionReducer.error}</Text>
+    <Text>{praysData.error}</Text>
   ) : (
     <View>
+      <View style={styles.meanScreen}>
+        <Hour nextPray={nextTimeName} nextPrayTime={nextTime} timer={seconds} />
+      </View>
       {praysData &&
-        praysData.requestActionReducer &&
-        praysData.requestActionReducer.prays &&
-        Object.entries(praysData.requestActionReducer.prays).map(
-          ([key, val]) => (
-            <Pray
-              key={key}
-              pray={key}
-              time={val}
-              alarmValue={prayAlarm(key)}
-              onchangeAlarm={setAlarmOfPray.bind(this, key, val)}
-            />
-          ),
-        )}
+        praysData.prays &&
+        Object.entries(praysData.prays).map(([key, val]) => (
+          <Pray
+            key={key}
+            pray={key}
+            time={val}
+            alarmValue={prayAlarm(key)}
+            onchangeAlarm={setAlarmOfPray.bind(this, key, val)}
+          />
+        ))}
     </View>
   );
 };
@@ -267,6 +210,3 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
-
-// <View style={styles.meanScreen}>
-//   <Hour nextPray={nextTimeName} nextPrayTime={nextTime} timer={seconds} />
