@@ -20,6 +20,32 @@ import {
   store,
 } from './store';
 import Example from './Example';
+import PushNotification, {Importance} from 'react-native-push-notification';
+import {startNotificationsFromBackground} from './App';
+PushNotification.configure({
+  onRegister: function (token) {
+    console.log('TOKEN:', token);
+  },
+  onNotification: function (notification) {
+    console.log('NOTIFICATION:', notification);
+    // notification.finish(PushNotificationIOS.FetchResult.NoData);
+  },
+  onAction: function (notification) {
+    console.log('ACTION:', notification.action);
+    console.log('NOTIFICATION:', notification);
+  },
+  onRegistrationError: function (err) {
+    console.error(err.message, err);
+  },
+
+  permissions: {
+    alert: true,
+    badge: true,
+    sound: true,
+  },
+  popInitialNotification: true,
+  requestPermissions: Platform.OS === 'ios',
+});
 
 export const MyHeadlessTask = async () => {
   try {
@@ -28,37 +54,36 @@ export const MyHeadlessTask = async () => {
     if (thisMonth == dateOfDatabase) {
       const day = new Date().getDate();
       let promise = select(day);
-
       promise.then(
         dayPray => {
-          // let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...dayPray};
-          // const x = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+          startNotificationsFromBackground({...dayPray});
           Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
       );
     } else {
-      deleteTable();
       //need a way to reapeat this functionality if there is no internet
       const month = new Date().getMonth() + 1;
       const year = new Date().getFullYear();
       const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
-      store.dispatch(fetchPraysRequest()); //{
+      store.dispatch(fetchPraysRequest());
 
       axios
         .get(url2)
         .then(response => {
+          deleteTable();
+          createTable();
           const json = response.data;
           const {data} = {...json};
-          createTable();
           getMonthPrayingTimes(data);
-
           const day = new Date().getDate();
           let data2 = data[day];
           let {timings} = {...data2};
           let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
           const x = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+          startNotificationsFromBackground({...x});
+
           Example.stopService();
           AsyncStorage.setItem(
             'database_month',

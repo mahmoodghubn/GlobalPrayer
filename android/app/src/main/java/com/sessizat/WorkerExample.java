@@ -2,6 +2,8 @@ package com.sessizat;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -16,8 +18,10 @@ import org.jetbrains.annotations.NotNull;
 import static com.sessizat.ExampleModule.reactContext;
 
 public class WorkerExample extends Worker {
+    Context context;
     public WorkerExample(@NonNull @NotNull Context context, @NonNull @NotNull WorkerParameters workerParams) {
         super(context, workerParams);
+        this.context = context;
     }
 
     @NonNull
@@ -25,24 +29,21 @@ public class WorkerExample extends Worker {
     @Override
     public Result doWork() {
         Date date = new Date();   // given date
-        Log.d("aftercalling","mahmoodghubn");
-        Log.d("mahmoodghubn",date.toString());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        if ((day ==1 )&&( isConnected)){//also the app must be in the background or the alarm will not be set
+            return Result.retry();
+        }
         reactContext.startService(new Intent(reactContext, ExampleService.class));
-
-//        Date date = new Date();   // given date
-//        Calendar calendar = Calendar.getInstance(); // creates a new calendar instance
-//        calendar.setTime(date);   // assigns calendar to given date
-//        int minute =calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
-//        int hour = calendar.get(Calendar.MINUTE);
-//        int sleepingTime = (24*60)-(minute + hour *60);
-//        int milli = (sleepingTime) * 60 *1000;
-//        try {
-//            Thread.sleep(milli);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-
-
         return Result.success();
     }
 }
