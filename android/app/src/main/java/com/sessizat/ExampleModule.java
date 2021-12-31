@@ -1,7 +1,6 @@
 package com.sessizat;
 
 import android.content.Intent;
-import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 
@@ -10,7 +9,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
 import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
@@ -52,9 +50,9 @@ public class ExampleModule extends ReactContextBaseJavaModule {
         Date date = new Date();   // given date
         Calendar calendar = Calendar.getInstance(); // creates a new calendar instance
         calendar.setTime(date);   // assigns calendar to given date
-        int hour =calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+        int hour = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
         int minute = calendar.get(Calendar.MINUTE);
-        int delay = (24*60)-(minute + hour *60);
+        int delay = (24 * 60) - (minute + hour * 60);
 
         //setBackoffCriteria should depend on the country if the country is likely to not have internet connection for long time this means we will not depend on the internet connection to be set up
         OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(WorkerExample.class)
@@ -63,16 +61,18 @@ public class ExampleModule extends ReactContextBaseJavaModule {
                         15,
                         TimeUnit.MINUTES)
                 .build();
-        PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(WorkerExample.class,1, TimeUnit.DAYS)
+
+
+        PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(WorkerExample.class, 1, TimeUnit.DAYS)
                 .setBackoffCriteria(
                         BackoffPolicy.LINEAR,
                         15,
                         TimeUnit.MINUTES)
-                .setInitialDelay(delay,TimeUnit.MINUTES)
+                .setInitialDelay(delay, TimeUnit.MINUTES)
                 .build();
 
         WorkManager.getInstance(this.reactContext).enqueue(oneTimeWorkRequest);
-        //WorkManager.getInstance(this.reactContext).enqueue(periodicWorkRequest);
+
         WorkManager.getInstance(this.reactContext).enqueueUniquePeriodicWork(
                 "periodicWork",
                 ExistingPeriodicWorkPolicy.REPLACE,

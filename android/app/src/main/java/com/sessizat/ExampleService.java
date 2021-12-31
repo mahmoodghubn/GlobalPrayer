@@ -6,10 +6,12 @@ import android.app.PendingIntent;
 
 import android.app.Service;
 
+import android.content.ComponentName;
 import android.content.Context;
 
 import android.content.Intent;
 
+import android.content.ServiceConnection;
 import android.os.Handler;
 
 import android.os.IBinder;
@@ -26,7 +28,10 @@ import com.facebook.react.HeadlessJsTaskService;
 
 import android.util.Log;
 
+import static com.sessizat.ExampleModule.reactContext;
+
 public class ExampleService extends Service {
+
 
     private static final int SERVICE_NOTIFICATION_ID = 100001;
 
@@ -57,6 +62,7 @@ public class ExampleService extends Service {
     @Override
 
     public IBinder onBind(Intent intent) {
+        this.handler.post(this.runnableCode);
 
         return null;
 
@@ -67,6 +73,7 @@ public class ExampleService extends Service {
     public void onCreate() {
 
         super.onCreate();
+        this.handler.post(this.runnableCode);
 
     }
 
@@ -84,29 +91,28 @@ public class ExampleService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        this.handler.post(this.runnableCode);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "HEARTBEAT", importance);
-            channel.setDescription("CHANEL DESCRIPTION");
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-        // The following code will turn it into a Foreground background process (Status bar notification)
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //     int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        //     NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "HEARTBEAT", importance);
+        //     channel.setDescription("CHANEL DESCRIPTION");
+        //     NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        //     notificationManager.createNotificationChannel(channel);
+        // }
+        // // The following code will turn it into a Foreground background process (Status bar notification)
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        // Intent notificationIntent = new Intent(this, MainActivity.class);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        // PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        // Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
 
-                .setContentIntent(contentIntent)
+        //         .setContentIntent(contentIntent)
 
-                .setOngoing(true)
+        //         .setOngoing(true)
 
-                .build();
+        //         .build();
 
-        startForeground(SERVICE_NOTIFICATION_ID, notification);
+        // startForeground(SERVICE_NOTIFICATION_ID, notification);
 
         return START_STICKY_COMPATIBILITY;
 

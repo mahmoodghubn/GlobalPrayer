@@ -2,8 +2,7 @@ import React, {useState, useEffect} from 'react';
 import PushNotification, {Importance} from 'react-native-push-notification';
 
 export const testSchedule = (date, pray) => {
-  console.log('testSchedule ');
-
+  console.log('worker is running testSchedule ');
   PushNotification.createChannel(
     {
       channelId: 'channel-id', // (required)

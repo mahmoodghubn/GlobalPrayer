@@ -31,14 +31,18 @@ export const createTable = () => {
 
 export const getMonthPrayingTimes = data => {
   let mon = new Date().getMonth();
-  console.log('getMonthPrayingTimes');
+  let year = new Date().getFullYear();
+  const daysList = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let days = daysList[mon];
+  if (year % 4 == 0 && mon == 1) {
+    days = 29;
+  }
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < days; i++) {
     let data2 = data[i];
     let {timings} = {...data2};
     let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
     insert(Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);
-    console.log('inserting data in the database');
   }
 };
 

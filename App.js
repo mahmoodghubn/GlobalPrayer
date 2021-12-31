@@ -16,14 +16,6 @@ const App = ({praysData, fetchPrays}) => {
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
 
-  let intervalId;
-  useEffect(() => {
-    startTimer();
-    return () => {
-      BackgroundTimer.clearInterval(intervalId); //only android
-    };
-  }, [seconds]);
-
   useEffect(() => {
     Example.startService();
     // fetchPrays();
@@ -35,6 +27,14 @@ const App = ({praysData, fetchPrays}) => {
     getPrayAlarm('Maghrib', setMagribAlarm);
     getPrayAlarm('Isha', setIshaAlarm);
   }, []);
+
+  let intervalId;
+  useEffect(() => {
+    startTimer();
+    return () => {
+      BackgroundTimer.clearInterval(intervalId); //only android
+    };
+  }, [seconds]);
 
   const startTimer = () => {
     intervalId = BackgroundTimer.setInterval(() => {
@@ -51,65 +51,9 @@ const App = ({praysData, fetchPrays}) => {
 
   useEffect(() => {
     if (Object.keys(praysData.prays).length) {
-      //sometime bug found
       findNextPrayAndSetSeconds();
     }
   }, [praysData]);
-
-  const findNextPrayAndSetSeconds = () => {
-    prop = nextPray({praysData});
-    setNextTime(prop.nextTime);
-    setNextTimeName(prop.nextTimeName);
-    const remain = getRemainSeconds(prop.nextTime);
-    setSeconds(remain);
-  };
-
-  const getRemainSeconds = pray => {
-    let remain;
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute * 60 + hour * 3600;
-    const prayHour = parseInt(pray.slice(0, 2));
-    const prayMinute = parseInt(pray.slice(3, 5));
-    const prayTime = prayHour * 3600 + prayMinute * 60;
-    if (nextTimeName != 'Fajr') {
-      remain = prayTime - time;
-    } else {
-      if (time < prayTime) {
-        remain = prayTime - time;
-      } else {
-        remain = 24 * 3600 - time + prayTime;
-      }
-    }
-    return remain;
-  };
-
-  const isPrayPassed = prayTime => {
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute + hour * 60;
-    const prayHour = parseInt(prayTime.slice(0, 2));
-    const prayMinute = parseInt(prayTime.slice(3, 5));
-    const namazVakti = prayHour * 60 + prayMinute;
-    return namazVakti > time;
-  };
-
-  const detectPrayAlarm = key => {
-    switch (key) {
-      case 'Fajr':
-        return fajrAlarm;
-      case 'Sunrise':
-        return sunriseAlarm;
-      case 'Dhuhr':
-        return dhuhrAlarm;
-      case 'Asr':
-        return asrAlarm;
-      case 'Maghrib':
-        return maghribAlarm;
-      case 'Isha':
-        return ishaAlarm;
-    }
-  };
 
   const [asrAlarm, setAsrAlarm] = useState(false);
   const [maghribAlarm, setMagribAlarm] = useState(false);
@@ -173,6 +117,61 @@ const App = ({praysData, fetchPrays}) => {
     }
   };
 
+  const findNextPrayAndSetSeconds = () => {
+    prop = nextPray({praysData});
+    setNextTime(prop.nextTime);
+    setNextTimeName(prop.nextTimeName);
+    const remain = getRemainSeconds(prop.nextTime);
+    setSeconds(remain);
+  };
+
+  const getRemainSeconds = pray => {
+    let remain;
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+    const time = minute * 60 + hour * 3600;
+    const prayHour = parseInt(pray.slice(0, 2));
+    const prayMinute = parseInt(pray.slice(3, 5));
+    const prayTime = prayHour * 3600 + prayMinute * 60;
+    if (nextTimeName != 'Fajr') {
+      remain = prayTime - time;
+    } else {
+      if (time < prayTime) {
+        remain = prayTime - time;
+      } else {
+        remain = 24 * 3600 - time + prayTime;
+      }
+    }
+    return remain;
+  };
+
+  const isPrayPassed = prayTime => {
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+    const time = minute + hour * 60;
+    const prayHour = parseInt(prayTime.slice(0, 2));
+    const prayMinute = parseInt(prayTime.slice(3, 5));
+    const namazVakti = prayHour * 60 + prayMinute;
+    return namazVakti > time;
+  };
+
+  const detectPrayAlarm = key => {
+    switch (key) {
+      case 'Fajr':
+        return fajrAlarm;
+      case 'Sunrise':
+        return sunriseAlarm;
+      case 'Dhuhr':
+        return dhuhrAlarm;
+      case 'Asr':
+        return asrAlarm;
+      case 'Maghrib':
+        return maghribAlarm;
+      case 'Isha':
+        return ishaAlarm;
+    }
+  };
+
   const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   const giveOrderedPrays = praysData => {
     return [
@@ -227,21 +226,23 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 
-export const startNotificationsFromBackground = async prays => {
+export const startNotificationsFromBackground = (
+  prays,
+  FajrAlarm,
+  SunriseAlarm,
+  DhuhrAlarm,
+  AsrAlarm,
+  MaghribAlarm,
+  IshaAlarm,
+) => {
   if (AppState.currentState == 'background') {
-    //what if the app was in the foreground at that time
     try {
-      const FajrAlarm = await AsyncStorage.getItem('Fajr');
-      const SunriseAlarm = await AsyncStorage.getItem('Sunrise');
-      const DhuhrAlarm = await AsyncStorage.getItem('Dhuhr');
-      const AsrAlarm = await AsyncStorage.getItem('Asr');
-      const MaghribAlarm = await AsyncStorage.getItem('Maghrib');
-      const IshaAlarm = await AsyncStorage.getItem('Isha');
-      if (FajrAlarm == 'true')
+      if (FajrAlarm == 'true') {
         testSchedule(
           new Date(Date.now() + getRemain(prays.Fajr) * 1000),
           'Fajr',
         );
+      }
 
       if (SunriseAlarm == 'true')
         testSchedule(

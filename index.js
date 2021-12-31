@@ -49,6 +49,13 @@ PushNotification.configure({
 
 export const MyHeadlessTask = async () => {
   try {
+    const FajrAlarm = await AsyncStorage.getItem('Fajr');
+    const SunriseAlarm = await AsyncStorage.getItem('Sunrise');
+    const DhuhrAlarm = await AsyncStorage.getItem('Dhuhr');
+    const AsrAlarm = await AsyncStorage.getItem('Asr');
+    const MaghribAlarm = await AsyncStorage.getItem('Maghrib');
+    const IshaAlarm = await AsyncStorage.getItem('Isha');
+
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
     if (thisMonth == dateOfDatabase) {
@@ -56,14 +63,21 @@ export const MyHeadlessTask = async () => {
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotificationsFromBackground({...dayPray});
+          startNotificationsFromBackground(
+            {...dayPray},
+            FajrAlarm,
+            SunriseAlarm,
+            DhuhrAlarm,
+            AsrAlarm,
+            MaghribAlarm,
+            IshaAlarm,
+          );
           Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
       );
     } else {
-      //need a way to reapeat this functionality if there is no internet
       const month = new Date().getMonth() + 1;
       const year = new Date().getFullYear();
       const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
@@ -78,11 +92,19 @@ export const MyHeadlessTask = async () => {
           const {data} = {...json};
           getMonthPrayingTimes(data);
           const day = new Date().getDate();
-          let data2 = data[day];
+          let data2 = data[day - 1];
           let {timings} = {...data2};
           let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-          const x = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
-          startNotificationsFromBackground({...x});
+          const dayPray = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+          startNotificationsFromBackground(
+            {...dayPray},
+            FajrAlarm,
+            SunriseAlarm,
+            DhuhrAlarm,
+            AsrAlarm,
+            MaghribAlarm,
+            IshaAlarm,
+          );
 
           Example.stopService();
           AsyncStorage.setItem(
@@ -90,7 +112,7 @@ export const MyHeadlessTask = async () => {
             JSON.stringify(new Date().getMonth()),
           );
 
-          store.dispatch(fetchPraysSuccess(x));
+          store.dispatch(fetchPraysSuccess({...dayPray}));
         })
         .catch(error => {
           const errorMsg = error.message;
@@ -109,3 +131,4 @@ const RNRedux = () => (
 
 AppRegistry.registerHeadlessTask('Example', () => MyHeadlessTask);
 AppRegistry.registerComponent(appName, () => RNRedux);
+// WARN  registerHeadlessTask or registerCancellableHeadlessTask called multiple times for same key 'Example'
