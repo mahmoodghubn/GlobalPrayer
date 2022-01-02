@@ -2,12 +2,7 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import axios from 'axios';
-import {
-  select,
-  deleteTable,
-  createTable,
-  getMonthPrayingTimes,
-} from './logic/database';
+import {select, deleteTable, getMonthPrayingTimes} from './logic/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useState} from 'react';
 import React from 'react';
@@ -86,8 +81,6 @@ export const MyHeadlessTask = async () => {
       axios
         .get(url2)
         .then(response => {
-          deleteTable();
-          createTable();
           const json = response.data;
           const {data} = {...json};
           getMonthPrayingTimes(data);
@@ -106,7 +99,6 @@ export const MyHeadlessTask = async () => {
             IshaAlarm,
           );
 
-          Example.stopService();
           AsyncStorage.setItem(
             'database_month',
             JSON.stringify(new Date().getMonth()),

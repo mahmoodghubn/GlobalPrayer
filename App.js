@@ -10,16 +10,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
 import {MyHeadlessTask} from './index';
-
+import {createTable} from './logic/database';
 const App = ({praysData, fetchPrays}) => {
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
 
+  const startService = async () => {
+    const dateOfDatabase = await AsyncStorage.getItem('database_month');
+    const thisMonth = new Date().getMonth();
+    if (thisMonth == dateOfDatabase) {
+      Example.startService(1);
+    } else {
+      Example.startService(0);
+    }
+  };
+
   useEffect(() => {
-    Example.startService();
-    // fetchPrays();
-    //taking alarm data from async storage and put it in usestate
+    createTable();
+    startService();
     getPrayAlarm('Fajr', setFajrAlarm);
     getPrayAlarm('Sunrise', setSunriseAlarm);
     getPrayAlarm('Dhuhr', setDhuhrAlarm);
