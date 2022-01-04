@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.15.14",
+    "@react-navigation/native": "^6.0.6",
+    "@react-navigation/native-stack": "^6.2.5",
     "axios": "^0.24.0",
     "react": "17.0.2",
     "react-native": "^0.66.3",
     "react-native-background-timer": "^2.4.1",
     "react-native-push-notification": "^8.1.1",
+    "react-native-safe-area-context": "^3.3.2",
+    "react-native-screens": "^3.10.1",
     "react-native-sqlite-storage": "^6.0.1",
     "react-redux": "^7.2.6",
     "redux": "^4.1.2",
@@ -36,4 +40,3 @@
     "preset": "react-native"
   }
 }
- 
