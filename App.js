@@ -11,6 +11,11 @@ import Example from './Example';
 import {connect} from 'react-redux';
 import {MyHeadlessTask} from './index';
 import {createTable} from './logic/database';
+import {NavigationContainer} from '@react-navigation/native';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+// import {createNativeStackNavigator} from '@react-navigation/native-stack';
+// const Stack = createNativeStackNavigator();
+import {DrawerContent} from './components/DrawerContent';
 const App = ({praysData, fetchPrays}) => {
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
@@ -193,27 +198,46 @@ const App = ({praysData, fetchPrays}) => {
     ];
   };
 
+  function HomeScreen({navigation}) {
+    return (
+      <View>
+        <View style={styles.meanScreen}>
+          <Hour
+            nextPray={nextTimeName}
+            nextPrayTime={nextTime}
+            timer={seconds}
+          />
+        </View>
+        {praysData &&
+          praysData.prays &&
+          giveOrderedPrays(praysData.prays).map((element, index) => (
+            <Pray
+              key={index}
+              pray={praysNames[index]}
+              time={element}
+              alarmValue={detectPrayAlarm(praysNames[index])}
+              onchangeAlarm={setPrayAlarm.bind(
+                this,
+                praysNames[index],
+                element,
+              )}
+            />
+          ))}
+      </View>
+    );
+  }
+  const Drawer = createDrawerNavigator();
+
   return praysData.loading ? (
     <Text>loading</Text>
   ) : praysData.error ? (
     <Text>{praysData.error}</Text>
   ) : (
-    <View>
-      <View style={styles.meanScreen}>
-        <Hour nextPray={nextTimeName} nextPrayTime={nextTime} timer={seconds} />
-      </View>
-      {praysData &&
-        praysData.prays &&
-        giveOrderedPrays(praysData.prays).map((element, index) => (
-          <Pray
-            key={index}
-            pray={praysNames[index]}
-            time={element}
-            alarmValue={detectPrayAlarm(praysNames[index])}
-            onchangeAlarm={setPrayAlarm.bind(this, praysNames[index], element)}
-          />
-        ))}
-    </View>
+    <NavigationContainer>
+      <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
+        <Drawer.Screen name="Silent Pray" component={HomeScreen} />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 };
 
