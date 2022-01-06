@@ -1,9 +1,18 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import {Text, Drawer} from 'react-native-paper';
+import {DrawerItem} from '@react-navigation/drawer';
 export function DrawerContent(props) {
   return (
-    <View>
-      <Text>hi there</Text>
+    <View style={{flex: 1, textColor: 'black'}}>
+      <Drawer.Section>
+        <DrawerItem
+          label="Mute Settings"
+          onPress={() => {
+            props.navigation.navigate('Mute Settings');
+          }}
+        />
+      </Drawer.Section>
     </View>
   );
 }

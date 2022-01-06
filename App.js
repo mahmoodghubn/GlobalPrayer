@@ -13,6 +13,7 @@ import {MyHeadlessTask} from './index';
 import {createTable} from './logic/database';
 import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {MuteSettings} from './components/MuteSettings';
 // import {createNativeStackNavigator} from '@react-navigation/native-stack';
 // const Stack = createNativeStackNavigator();
 import {DrawerContent} from './components/DrawerContent';
@@ -236,6 +237,7 @@ const App = ({praysData, fetchPrays}) => {
     <NavigationContainer>
       <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
         <Drawer.Screen name="Silent Pray" component={HomeScreen} />
+        <Drawer.Screen name="Mute Settings" component={MuteSettings} />
       </Drawer.Navigator>
     </NavigationContainer>
   );
