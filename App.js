@@ -5,7 +5,8 @@ import Hour from './components/Hour';
 import nextPray from './logic/nextPray';
 import {testSchedule} from './logic/notification';
 import BackgroundTimer from 'react-native-background-timer';
-import {StyleSheet, View, TouchableOpacity, Text, AppState} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {StyleSheet, View, Text, AppState} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
@@ -14,8 +15,6 @@ import {createTable} from './logic/database';
 import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {MuteSettings} from './components/MuteSettings';
-// import {createNativeStackNavigator} from '@react-navigation/native-stack';
-// const Stack = createNativeStackNavigator();
 import {DrawerContent} from './components/DrawerContent';
 const App = ({praysData, fetchPrays}) => {
   const [nextTime, setNextTime] = useState();
@@ -237,7 +236,19 @@ const App = ({praysData, fetchPrays}) => {
     <NavigationContainer>
       <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
         <Drawer.Screen name="Silent Pray" component={HomeScreen} />
-        <Drawer.Screen name="Mute Settings" component={MuteSettings} />
+        <Drawer.Screen
+          name="Mute Settings"
+          component={MuteSettings}
+          options={({navigation}) => ({
+            headerLeft: () => (
+              <Icon.Button
+                name="arrow-back-outline"
+                color="#000"
+                backgroundColor="#fff"
+                onPress={() => navigation.goBack()}></Icon.Button>
+            ),
+          })}
+        />
       </Drawer.Navigator>
     </NavigationContainer>
   );
