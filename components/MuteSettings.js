@@ -68,13 +68,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-// const fajr = await AsyncStorage.getItem('FajrSilent');
-// const dhuhr = await AsyncStorage.getItem('DhuhrSilent');
-// const asr = await AsyncStorage.getItem('AsrSilent');
-// const maghrib = await AsyncStorage.getItem('MaghribSilent');
-// const isha = await AsyncStorage.getItem('IshaSilent');
-// if (fajr == 'true') dispatch({type: 'Fajr', payload: false});
-// if (dhuhr == 'true') dispatch({type: 'Dhuhr', payload: false});
-// if (asr == 'true') dispatch({type: 'Asr', payload: false});
-// if (maghrib == 'true') dispatch({type: 'Maghrib', payload: false});
-// if (isha == 'true') dispatch({type: 'Isha', payload: false});

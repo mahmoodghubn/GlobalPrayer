@@ -8,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useState} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
-
 import {
   fetchPraysRequest,
   fetchPraysSuccess,
@@ -18,6 +17,7 @@ import {
 import Example from './Example';
 import PushNotification, {Importance} from 'react-native-push-notification';
 import {startNotificationsFromBackground} from './App';
+
 PushNotification.configure({
   onRegister: function (token) {
     console.log('TOKEN:', token);
@@ -52,6 +52,15 @@ export const MyHeadlessTask = async () => {
     const MaghribAlarm = await AsyncStorage.getItem('Maghrib');
     const IshaAlarm = await AsyncStorage.getItem('Isha');
 
+    const alarmArray = [
+      FajrAlarm,
+      SunriseAlarm,
+      DhuhrAlarm,
+      AsrAlarm,
+      MaghribAlarm,
+      IshaAlarm,
+    ];
+
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
     if (thisMonth == dateOfDatabase) {
@@ -59,15 +68,7 @@ export const MyHeadlessTask = async () => {
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotificationsFromBackground(
-            {...dayPray},
-            FajrAlarm,
-            SunriseAlarm,
-            DhuhrAlarm,
-            AsrAlarm,
-            MaghribAlarm,
-            IshaAlarm,
-          );
+          startNotificationsFromBackground({...dayPray}, alarmArray);
           Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
@@ -90,15 +91,7 @@ export const MyHeadlessTask = async () => {
           let {timings} = {...data2};
           let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
           const dayPray = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
-          startNotificationsFromBackground(
-            {...dayPray},
-            FajrAlarm,
-            SunriseAlarm,
-            DhuhrAlarm,
-            AsrAlarm,
-            MaghribAlarm,
-            IshaAlarm,
-          );
+          startNotificationsFromBackground({...dayPray}, alarmArray);
 
           AsyncStorage.setItem(
             'database_month',
