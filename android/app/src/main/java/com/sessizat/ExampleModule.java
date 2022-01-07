@@ -49,19 +49,21 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     }
 
-    // @ReactMethod
+    @ReactMethod
 
-    // public void setAlarm(String pray, String prayTime) {
-    //     SharedPreferences sharedPreferences = getReactApplicationContext().getSharedPreferences("MY_PREFS_NAME", MODE_PRIVATE);
-    //     SharedPreferences.Editor editor = sharedPreferences.edit();
-    //     editor.putBoolean(pray, !sharedPreferences.getBoolean(pray, false));
-    //     editor.apply();
-    //     if (sharedPreferences.getBoolean(pray, false)) {
-    //         //TODO add alarm manager on $prayTime
-    //     } else {
-    //         //TODO remove alarm manager at $prayTime
-    //     }
-    // }
+    public void setMuteOnPray(String pray,String prayTime) {
+            // SharedPreferences sharedPreferences = getReactApplicationContext().getSharedPreferences("MY_PREFS_NAME", MODE_PRIVATE);
+            // SharedPreferences.Editor editor = sharedPreferences.edit();
+            // editor.putBoolean(pray, !sharedPreferences.getBoolean(pray, false));
+            // editor.apply();
+            // if (sharedPreferences.getBoolean(pray, false)) {
+            //     //TODO add alarm manager on $prayTime
+            // } else {
+            //     //TODO remove alarm manager at $prayTime
+            // }
+            Log.d("setMuteOnPray", pray);
+            Log.d("setMuteOnPray", prayTime);
+    }
 
     @ReactMethod
 

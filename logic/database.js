@@ -89,20 +89,20 @@ export const select = day => {
   });
 };
 
-// export const deleteTable = async () => {
-//   console.log('worker is running delete table');
-//   try {
-//     await db.transaction(tx => {
-//       tx.executeSql(
-//         'DELETE FROM PrayTable',
-//         [],
-//         () => {
-//           console.log('database deleted successfully');
-//         },
-//         error => console.log(error),
-//       );
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+export const selectPray = pray => {
+  const day = new Date().getDate();
+  console.log('hi database');
+  db.transaction(tx => {
+    tx.executeSql(
+      `SELECT ${pray} FROM PrayTable WHERE ID = ${day}`,
+      [],
+      (sqlTxn: SQLTransaction, res: SQLResultSet) => {
+        const prayTime = res.rows.item(0);
+        Example.setMuteOnPray(pray, prayTime[pray]);
+      },
+      error => {
+        console.log('error message' + error.message);
+      },
+    );
+  });
+};
