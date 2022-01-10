@@ -2,15 +2,20 @@ import React, {Component, useState, useEffect, useReducer} from 'react';
 import {View, Text, StyleSheet, Switch} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {selectPray} from '../logic/database';
+import {checkDndAccess, requestDndAccess} from 'react-native-ringer-mode';
 const reducer = (state, action) => {
   const callSelectPray = action.payload;
   const pray = action.type;
   const key = pray + 'Silent';
   AsyncStorage.setItem(key, JSON.stringify(!state[pray]));
-  if (!state[pray] && callSelectPray) {
-    selectPray(pray);
-  } else {
+  if (callSelectPray) {
+    if (!state[pray]) {
+      selectPray(pray, true);
+    } else {
+      selectPray(pray, false);
+    }
   }
+
   return {...state, [pray]: !state[pray]};
 };
 
@@ -39,6 +44,15 @@ export function MuteSettings() {
   };
   const [state, dispatch] = useReducer(reducer, defaultState);
 
+  const checkAccess = async pray => {
+    const hasDndAccess = await checkDndAccess();
+
+    if (hasDndAccess === false) {
+      requestDndAccess();
+    } else {
+      dispatch({type: pray, payload: true});
+    }
+  };
   return praysNames.map((pray, index) => (
     <View style={styles.prayStyle} key={index}>
       <Text style={styles.text}>{pray}</Text>
@@ -46,7 +60,7 @@ export function MuteSettings() {
         trackColor={{false: '#767577', true: '#81b0ff'}}
         thumbColor={state[pray] ? '#f5dd4b' : '#f4f3f4'}
         ios_backgroundColor="#3e3e3e"
-        onValueChange={() => dispatch({type: pray, payload: true})}
+        onValueChange={() => checkAccess(pray)}
         value={state[pray]}
       />
     </View>

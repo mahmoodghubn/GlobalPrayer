@@ -89,16 +89,15 @@ export const select = day => {
   });
 };
 
-export const selectPray = pray => {
+export const selectPray = (pray, bool) => {
   const day = new Date().getDate();
-  console.log('hi database');
   db.transaction(tx => {
     tx.executeSql(
       `SELECT ${pray} FROM PrayTable WHERE ID = ${day}`,
       [],
       (sqlTxn: SQLTransaction, res: SQLResultSet) => {
         const prayTime = res.rows.item(0);
-        Example.setMuteOnPray(pray, prayTime[pray]);
+        Example.setMuteOnPray(pray, prayTime[pray], bool);
       },
       error => {
         console.log('error message' + error.message);

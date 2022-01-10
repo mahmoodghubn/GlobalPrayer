@@ -1,8 +1,8 @@
 package com.sessizat;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.ALARM_SERVICE;
 
 public class ExampleModule extends ReactContextBaseJavaModule {
 
@@ -31,11 +31,15 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     public static ReactApplicationContext reactContext;
 
+    private Calendar calendar;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+
     public ExampleModule(@Nonnull ReactApplicationContext reactContext) {
 
         super(reactContext);
 
-        this.reactContext = reactContext;
+        ExampleModule.reactContext = reactContext;
 
     }
 
@@ -49,20 +53,91 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     }
 
+    private void cancelQuietAlarm(int requestCode) {
+        Intent intent = new Intent(reactContext, QuietAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(reactContext, requestCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        if (alarmManager == null) {
+            alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
+        }
+        alarmManager.cancel(pendingIntent);
+    }
+
+    private void cancelSoundAlarm(int requestCode) {
+        Intent intent = new Intent(reactContext, SoundAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(reactContext, requestCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        if (alarmManager == null) {
+            alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
+        }
+        alarmManager.cancel(pendingIntent);
+    }
+
+    private void setQuietAlarm(int hour, int minute, int requestCode) {
+        calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        // if (Build.VERSION.SDK_INT < 23) {
+        alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(reactContext, QuietAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(reactContext, requestCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        alarmManager.setExact(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+        // } else {
+        //     NotificationManager notificationManager = (NotificationManager) reactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        //     // if user granted access else ask for permission
+        //     if (notificationManager.isNotificationPolicyAccessGranted()) {
+        //         alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
+        //         Intent intent = new Intent(reactContext, QuietAlarmReceiver.class);
+        //         pendingIntent = PendingIntent.getBroadcast(reactContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        //         alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (60 * 1000), pendingIntent);
+        //     }else{
+        //         new MainActivity().requestForDoNotDisturbPermissionOrSetDoNotDisturbForApi23AndUp();
+        //     }
+        // }
+
+    }
+
+    private void setSoundAlarm(int hour, int minute, int requestCode) {
+        calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(reactContext, SoundAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(reactContext, requestCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        alarmManager.setExact(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+    }
+
     @ReactMethod
 
-    public void setMuteOnPray(String pray,String prayTime) {
-            // SharedPreferences sharedPreferences = getReactApplicationContext().getSharedPreferences("MY_PREFS_NAME", MODE_PRIVATE);
-            // SharedPreferences.Editor editor = sharedPreferences.edit();
-            // editor.putBoolean(pray, !sharedPreferences.getBoolean(pray, false));
-            // editor.apply();
-            // if (sharedPreferences.getBoolean(pray, false)) {
-            //     //TODO add alarm manager on $prayTime
-            // } else {
-            //     //TODO remove alarm manager at $prayTime
-            // }
-            Log.d("setMuteOnPray", pray);
-            Log.d("setMuteOnPray", prayTime);
+    public void setMuteOnPray(String pray, String prayTime, boolean bool) {
+        String[] array = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"};
+
+        int requestCodeQuietAlarm = 0;
+        for (int i = 0; i < array.length; i++) {
+            if (pray.contentEquals(array[i])) {
+                requestCodeQuietAlarm = i;
+            }
+        }
+        int requestCodeSoundAlarm = requestCodeQuietAlarm * 2;
+        if (bool) {
+            int quietHour = Integer.parseInt(prayTime.substring(0, 2));
+            int quietMinute = Integer.parseInt(prayTime.substring(3, 5));
+            int soundMinute = quietMinute + 15;
+            int soundHour = quietHour;
+            if (soundMinute > 59) {
+                soundMinute = soundMinute - 60;
+                soundHour++;
+            }
+            setQuietAlarm(quietHour, quietMinute, requestCodeQuietAlarm);
+            setSoundAlarm(soundHour, soundMinute, requestCodeSoundAlarm);
+        } else {
+            cancelQuietAlarm(requestCodeQuietAlarm);
+            cancelSoundAlarm(requestCodeSoundAlarm);
+        }
+
+
     }
 
     @ReactMethod
@@ -98,9 +173,9 @@ public class ExampleModule extends ReactContextBaseJavaModule {
                 .setInitialDelay(delay, TimeUnit.MINUTES)
                 .build();
 
-        WorkManager.getInstance(this.reactContext).enqueue(oneTimeWorkRequest);
+        WorkManager.getInstance(reactContext).enqueue(oneTimeWorkRequest);
 
-        WorkManager.getInstance(this.reactContext).enqueueUniquePeriodicWork(
+        WorkManager.getInstance(reactContext).enqueueUniquePeriodicWork(
                 "periodicWork",
                 ExistingPeriodicWorkPolicy.REPLACE,
                 periodicWorkRequest
@@ -111,7 +186,7 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     public void stopService() {
 
-        this.reactContext.stopService(new Intent(this.reactContext, ExampleService.class));
+        reactContext.stopService(new Intent(reactContext, ExampleService.class));
 
     }
 
