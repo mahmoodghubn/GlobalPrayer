@@ -105,3 +105,20 @@ export const selectPray = (pray, bool) => {
     );
   });
 };
+
+export const selectPrays = pray => {
+  const day = new Date().getDate();
+  db.transaction(tx => {
+    tx.executeSql(
+      `SELECT ${pray} FROM PrayTable WHERE ID = ${day}`,
+      [],
+      (sqlTxn: SQLTransaction, res: SQLResultSet) => {
+        const prayTime = res.rows.item(0);
+        Example.setDailyMute(prayTime);
+      },
+      error => {
+        console.log('error message' + error.message);
+      },
+    );
+  });
+};

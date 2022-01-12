@@ -3,7 +3,12 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import axios from 'axios';
-import {select, deleteTable, getMonthPrayingTimes} from './logic/database';
+import {
+  select,
+  deleteTable,
+  getMonthPrayingTimes,
+  selectPrays,
+} from './logic/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useState} from 'react';
 import React from 'react';
@@ -42,13 +47,33 @@ PushNotification.configure({
   popInitialNotification: true,
   requestPermissions: Platform.OS === 'ios',
 });
+const getSilentPrays = async () => {
+  const SilentList = [
+    'FajrSilent',
+    'DhuhrSilent',
+    'AsrSilent',
+    'MaghribSilent',
+    'IshaSilent',
+  ];
+  const praysNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  let silentPray;
+  let SilentPrays = [];
+  for (let i = 0; i < 5; i++) {
+    silentPray = await AsyncStorage.getItem(SilentList[i]);
+    if (silentPray == 'true') {
+      SilentPrays.push(praysNames[i]);
+    }
+  }
+  selectPrays(SilentPrays);
+};
 
 export const MyHeadlessTask = async () => {
   try {
+    getSilentPrays();
     const FajrAlarm = await AsyncStorage.getItem('Fajr');
+    const AsrAlarm = await AsyncStorage.getItem('Asr');
     const SunriseAlarm = await AsyncStorage.getItem('Sunrise');
     const DhuhrAlarm = await AsyncStorage.getItem('Dhuhr');
-    const AsrAlarm = await AsyncStorage.getItem('Asr');
     const MaghribAlarm = await AsyncStorage.getItem('Maghrib');
     const IshaAlarm = await AsyncStorage.getItem('Isha');
 
@@ -78,7 +103,7 @@ export const MyHeadlessTask = async () => {
       const month = new Date().getMonth() + 1;
       const year = new Date().getFullYear();
       const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
-      store.dispatch(fetchPraysRequest());
+      // store.dispatch(fetchPraysRequest());
 
       axios
         .get(url2)

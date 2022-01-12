@@ -2,7 +2,7 @@ import {createStore, combineReducers, applyMiddleware} from 'redux';
 import {createAction, handleActions} from 'redux-actions';
 import thunk from 'redux-thunk';
 const appInitialState = {
-  loading: false,
+  loading: true,
   prays: {},
   error: '',
 };
