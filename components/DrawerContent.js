@@ -12,6 +12,12 @@ export function DrawerContent(props) {
             props.navigation.navigate('Mute Settings');
           }}
         />
+        <DrawerItem
+          label="Change Method"
+          onPress={() => {
+            props.navigation.navigate('Change Method');
+          }}
+        />
       </Drawer.Section>
     </View>
   );

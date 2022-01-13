@@ -17,6 +17,9 @@ import {MuteSettings} from './components/MuteSettings';
 import {DrawerContent} from './components/DrawerContent';
 import PushNotification from 'react-native-push-notification';
 import {fetchPraysRequest, store} from './store';
+import Method from './components/Method';
+import {LogBox} from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 const App = ({praysData, fetchPrays}) => {
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
@@ -54,28 +57,7 @@ const App = ({praysData, fetchPrays}) => {
   };
 
   const reducer = (state, action) => {
-    const prayTime = action.payload;
     const pray = action.type;
-    AsyncStorage.setItem(pray, JSON.stringify(!state[pray]));
-    const praysName = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-    if (prayTime && isPrayPassed(prayTime)) {
-      let id = 0;
-      for (let i = 0; i < 6; i++) {
-        if (pray == praysName[i]) {
-          id = i;
-        }
-      }
-      if (!state[pray]) {
-        testSchedule(
-          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
-          pray,
-          id,
-        );
-      } else {
-        PushNotification.cancelLocalNotification(id);
-      }
-    }
     return {...state, [pray]: !state[pray]};
   };
 
@@ -87,7 +69,9 @@ const App = ({praysData, fetchPrays}) => {
       let pray;
       for (let i = 0; i < 6; i++) {
         pray = await AsyncStorage.getItem(praysNames[i]);
-        if (pray == 'true') send({type: praysNames[i]});
+        if (pray == 'true') {
+          send({type: praysNames[i]});
+        }
       }
     }
     fetchData();
@@ -194,10 +178,7 @@ const App = ({praysData, fetchPrays}) => {
               pray={praysNames[index]}
               time={element}
               alarmValue={state[praysNames[index]]}
-              onchangeAlarm={send.bind(this, {
-                type: praysNames[index],
-                payload: element,
-              })}
+              onchangeAlarm={() => dispatcher(praysNames[index], element)}
             />
           ))}
       </View>
@@ -205,6 +186,34 @@ const App = ({praysData, fetchPrays}) => {
   }
   const Drawer = createDrawerNavigator();
 
+  const dispatcher = (type, payload) => {
+    const bool = !state[pray];
+    send({
+      type: type,
+    });
+    const prayTime = payload;
+    const pray = type;
+    AsyncStorage.setItem(pray, JSON.stringify(!state[pray]));
+    const praysName = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+    if (prayTime && isPrayPassed(prayTime)) {
+      let id = 0;
+      for (let i = 0; i < 6; i++) {
+        if (pray == praysName[i]) {
+          id = i;
+        }
+      }
+      if (bool) {
+        testSchedule(
+          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
+          pray,
+          id,
+        );
+      } else {
+        PushNotification.cancelLocalNotification(id);
+      }
+    }
+  };
   return praysData.loading ? (
     <View>
       <Image source={require('./assets/aksa.jpg')} />
@@ -218,6 +227,19 @@ const App = ({praysData, fetchPrays}) => {
         <Drawer.Screen
           name="Mute Settings"
           component={MuteSettings}
+          options={({navigation}) => ({
+            headerLeft: () => (
+              <Icon.Button
+                name="arrow-back-outline"
+                color="#000"
+                backgroundColor="#fff"
+                onPress={() => navigation.goBack()}></Icon.Button>
+            ),
+          })}
+        />
+        <Drawer.Screen
+          name="Change Method"
+          component={Method}
           options={({navigation}) => ({
             headerLeft: () => (
               <Icon.Button
@@ -253,16 +275,18 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 
-export const startNotificationsFromBackground = (prays, alarmArray) => {
+export const startNotificationsFromBackground = async prays => {
   const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
+  let alarm;
   if (AppState.currentState == 'background') {
-    for (i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) {
       try {
-        if (alarmArray[i] == 'true') {
+        alarm = await AsyncStorage.getItem(praysNames[i]);
+        if (alarm == 'true') {
           testSchedule(
             new Date(Date.now() + getRemain(prays[praysNames[i]]) * 1000),
             praysNames[i],
+            i,
           );
         }
       } catch (error) {

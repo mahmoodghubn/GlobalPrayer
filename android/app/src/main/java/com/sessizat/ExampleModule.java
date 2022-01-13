@@ -181,6 +181,7 @@ public class ExampleModule extends ReactContextBaseJavaModule {
         int hour = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
         int minute = calendar.get(Calendar.MINUTE);
         int delay = (24 * 60) - (minute + hour * 60);
+        //TODO put the value determined where is data updated or not in here
 
         Data myData = new Data.Builder()
                 // We need to pass three integers: X, Y, and Z
