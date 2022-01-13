@@ -22,6 +22,7 @@ import {
 import Example from './Example';
 import PushNotification, {Importance} from 'react-native-push-notification';
 import {startNotificationsFromBackground} from './App';
+import buildUrl from './logic/buildUrl';
 
 PushNotification.configure({
   onRegister: function (token) {
@@ -47,6 +48,7 @@ PushNotification.configure({
   popInitialNotification: true,
   requestPermissions: Platform.OS === 'ios',
 });
+
 const getSilentPrays = async () => {
   const SilentList = [
     'FajrSilent',
@@ -70,22 +72,6 @@ const getSilentPrays = async () => {
 export const MyHeadlessTask = async () => {
   try {
     getSilentPrays();
-    const FajrAlarm = await AsyncStorage.getItem('Fajr');
-    const AsrAlarm = await AsyncStorage.getItem('Asr');
-    const SunriseAlarm = await AsyncStorage.getItem('Sunrise');
-    const DhuhrAlarm = await AsyncStorage.getItem('Dhuhr');
-    const MaghribAlarm = await AsyncStorage.getItem('Maghrib');
-    const IshaAlarm = await AsyncStorage.getItem('Isha');
-
-    const alarmArray = [
-      FajrAlarm,
-      SunriseAlarm,
-      DhuhrAlarm,
-      AsrAlarm,
-      MaghribAlarm,
-      IshaAlarm,
-    ];
-
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
     if (thisMonth == dateOfDatabase) {
@@ -93,47 +79,48 @@ export const MyHeadlessTask = async () => {
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotificationsFromBackground({...dayPray}, alarmArray);
+          startNotificationsFromBackground({...dayPray});
           Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
       );
     } else {
-      const month = new Date().getMonth() + 1;
-      const year = new Date().getFullYear();
-      const url2 = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=2&month=${month}&year=${year}`;
-      // store.dispatch(fetchPraysRequest());
-
-      axios
-        .get(url2)
-        .then(response => {
-          const json = response.data;
-          const {data} = {...json};
-          getMonthPrayingTimes(data);
-          const day = new Date().getDate();
-          let data2 = data[day - 1];
-          let {timings} = {...data2};
-          let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-          const dayPray = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
-          startNotificationsFromBackground({...dayPray}, alarmArray);
-
-          AsyncStorage.setItem(
-            'database_month',
-            JSON.stringify(new Date().getMonth()),
-          );
-
-          store.dispatch(fetchPraysSuccess({...dayPray}));
-        })
-        .catch(error => {
-          const errorMsg = error.message;
-          store.dispatch(fetchPraysFailure(errorMsg));
-        });
+      fetchNewData();
     }
   } catch (error) {
     console.log(error.message);
   }
 };
+
+export const fetchNewData = async () => {
+  const url = await buildUrl();
+  axios
+    .get(url)
+    .then(response => {
+      const json = response.data;
+      const {data} = {...json};
+      getMonthPrayingTimes(data);
+      const day = new Date().getDate();
+      let data2 = data[day - 1];
+      let {timings} = {...data2};
+      let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
+      const dayPray = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+      startNotificationsFromBackground({...dayPray});
+
+      AsyncStorage.setItem(
+        'database_month',
+        JSON.stringify(new Date().getMonth()),
+      );
+
+      store.dispatch(fetchPraysSuccess({...dayPray}));
+    })
+    .catch(error => {
+      const errorMsg = error.message;
+      store.dispatch(fetchPraysFailure(errorMsg));
+    });
+};
+
 const RNRedux = () => (
   <Provider store={store}>
     <App />
@@ -144,3 +131,4 @@ AppRegistry.registerHeadlessTask('Example', () => MyHeadlessTask);
 AppRegistry.registerComponent(appName, () => RNRedux);
 // WARN  registerHeadlessTask or registerCancellableHeadlessTask called multiple times for same key 'Example'
 //yarn start --reset-cache
+//error messagenear "FROM": syntax error (code 1 SQLITE_ERROR[1]): , while compiling: SELECT  FROM PrayTable WHERE ID = 13
