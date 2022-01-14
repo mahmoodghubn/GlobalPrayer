@@ -66,20 +66,23 @@ const getSilentPrays = async () => {
       SilentPrays.push(praysNames[i]);
     }
   }
-  selectPrays(SilentPrays);
+  if (SilentPrays.length) {
+    selectPrays(SilentPrays);
+  }
 };
 
 export const MyHeadlessTask = async () => {
   try {
-    getSilentPrays();
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
     if (thisMonth == dateOfDatabase) {
+      getSilentPrays();
+
       const day = new Date().getDate();
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotificationsFromBackground({...dayPray});
+          startNotificationsFromBackground({...dayPray}, false);
           Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
@@ -104,16 +107,31 @@ export const fetchNewData = async () => {
       const day = new Date().getDate();
       let data2 = data[day - 1];
       let {timings} = {...data2};
-      let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-      const dayPray = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
-      startNotificationsFromBackground({...dayPray});
+      let date = new Date();
+      let offsetInHours = date.getTimezoneOffset() / 60;
+      let Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha;
+      let prayDay = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+      let prayer = {};
+      let prayHour;
+      for (key in timings) {
+        if (prayDay.hasOwnProperty(key)) {
+          prayHour = parseInt(timings[key].slice(0, 2)) - offsetInHours;
+          if (prayHour < 10) {
+            prayer[key] = '0' + prayHour + timings[key].slice(2, 5);
+          } else {
+            prayer[key] = prayHour + timings[key].slice(2, 5);
+          }
+        }
+      }
+      startNotificationsFromBackground({...prayer}, true);
+      getSilentPrays();
 
       AsyncStorage.setItem(
         'database_month',
         JSON.stringify(new Date().getMonth()),
       );
 
-      store.dispatch(fetchPraysSuccess({...dayPray}));
+      store.dispatch(fetchPraysSuccess({...prayer}));
     })
     .catch(error => {
       const errorMsg = error.message;

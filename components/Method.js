@@ -1,27 +1,42 @@
 import React, {Component, useState, useEffect, useReducer} from 'react';
-import {ScrollView, View, Text, StyleSheet, Switch} from 'react-native';
+import {ScrollView, View, Text, StyleSheet, Switch, Alert} from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {RadioButton} from 'react-native-paper';
 import {fetchNewData} from '../index';
 import Example from '../Example';
 const method = () => {
+  const checkInternetStatus = value => {
+    NetInfo.fetch().then(state => {
+      if (state.isConnected) {
+        changeUrl(value);
+      } else {
+        Alert.alert('Internet Error', 'press Ok to retry', [
+          {text: 'OK', onPress: () => console.log('OK Pressed')},
+        ]);
+      }
+    });
+  };
+
   const [checked, setChecked] = React.useState('');
   const changeUrl = value => {
     setChecked(value);
     AsyncStorage.setItem('method', value);
     fetchNewData();
   };
+
   useEffect(() => {
     async function fetchData() {
-      value = await AsyncStorage.getItem('method');
+      const value = await AsyncStorage.getItem('method');
+
       if (value) {
         setChecked(value);
       } else {
-        setChecked(13);
+        setChecked('13');
       }
     }
     fetchData();
-  }, [checked]);
+  }, []);
 
   return (
     <ScrollView>
@@ -29,7 +44,7 @@ const method = () => {
         <RadioButton
           value="0"
           status={checked === '0' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('0')}
+          onPress={() => checkInternetStatus('0')}
         />
         <Text style={styles.text}>Shia Ithna-Ansari</Text>
       </View>
@@ -37,7 +52,7 @@ const method = () => {
         <RadioButton
           value="1"
           status={checked === '1' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('1')}
+          onPress={() => checkInternetStatus('1')}
         />
         <Text style={styles.text}>University of Islamic Sciences, Karachi</Text>
       </View>
@@ -45,7 +60,7 @@ const method = () => {
         <RadioButton
           value="2"
           status={checked === '2' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('2')}
+          onPress={() => checkInternetStatus('2')}
         />
         <Text style={styles.text}>Islamic Society of North America</Text>
       </View>
@@ -53,7 +68,7 @@ const method = () => {
         <RadioButton
           value="3"
           status={checked === '3' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('3')}
+          onPress={() => checkInternetStatus('3')}
         />
         <Text style={styles.text}>Muslim World League</Text>
       </View>
@@ -61,7 +76,7 @@ const method = () => {
         <RadioButton
           value="4"
           status={checked === '4' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('4')}
+          onPress={() => checkInternetStatus('4')}
         />
         <Text style={styles.text}>Umm Al-Qura University, Makkah</Text>
       </View>
@@ -69,7 +84,7 @@ const method = () => {
         <RadioButton
           value="5"
           status={checked === '5' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('5')}
+          onPress={() => checkInternetStatus('5')}
         />
         <Text style={styles.text}>Egyptian General Authority of Survey</Text>
       </View>
@@ -78,7 +93,7 @@ const method = () => {
         <RadioButton
           value="7"
           status={checked === '7' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('7')}
+          onPress={() => checkInternetStatus('7')}
         />
         <Text style={styles.text}>
           Institute of Geophysics, University of Tehran
@@ -88,7 +103,7 @@ const method = () => {
         <RadioButton
           value="8"
           status={checked === '8' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('8')}
+          onPress={() => checkInternetStatus('8')}
         />
         <Text style={styles.text}>Gulf Region</Text>
       </View>
@@ -96,7 +111,7 @@ const method = () => {
         <RadioButton
           value="9"
           status={checked === '9' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('9')}
+          onPress={() => checkInternetStatus('9')}
         />
         <Text style={styles.text}>Kuwait</Text>
       </View>
@@ -104,7 +119,7 @@ const method = () => {
         <RadioButton
           value="10"
           status={checked === '10' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('10')}
+          onPress={() => checkInternetStatus('10')}
         />
         <Text style={styles.text}>Qatar</Text>
       </View>
@@ -112,7 +127,7 @@ const method = () => {
         <RadioButton
           value="11"
           status={checked === '11' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('11')}
+          onPress={() => checkInternetStatus('11')}
         />
         <Text style={styles.text}>Majlis Ugama Islam Singapura, Singapore</Text>
       </View>
@@ -120,7 +135,7 @@ const method = () => {
         <RadioButton
           value="12"
           status={checked === '12' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('12')}
+          onPress={() => checkInternetStatus('12')}
         />
         <Text style={styles.text}>Union Organization islamic de France</Text>
       </View>
@@ -128,7 +143,7 @@ const method = () => {
         <RadioButton
           value="13"
           status={checked === '13' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('13')}
+          onPress={() => checkInternetStatus('13')}
         />
         <Text style={styles.text}>Diyanet İşleri Başkanlığı, Turkey</Text>
       </View>
@@ -136,7 +151,7 @@ const method = () => {
         <RadioButton
           value="14"
           status={checked === '14' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('14')}
+          onPress={() => checkInternetStatus('14')}
         />
         <Text style={styles.text}>
           Spiritual Administration of Muslims of Russia
@@ -146,7 +161,7 @@ const method = () => {
         <RadioButton
           value="15"
           status={checked === '15' ? 'checked' : 'unchecked'}
-          onPress={() => changeUrl('15')}
+          onPress={() => checkInternetStatus('15')}
         />
         <Text style={styles.text}>Moonsighting Committee Worldwide</Text>
       </View>
@@ -179,7 +194,7 @@ const styles = StyleSheet.create({
 //         <RadioButton
 //           value={x}
 //           status={checked == x ? 'checked' : 'unchecked'}
-//           onPress={() => changeUrl(x)}
+//           onPress={() => checkInternetStatus(x)}
 //         />
 //       );
 //     })}

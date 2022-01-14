@@ -12,12 +12,12 @@ export const testSchedule = (date, pray, id) => {
       importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
       vibrate: false, // (optional) default: true. Creates the default vibration pattern if true.
     },
-    created => console.log(`createChannel returned '${created}'`), // (optional) callback returns whether the channel was created, false means it already existed.
+    created => console.log(`createChannel returned ${created}`), // (optional) callback returns whether the channel was created, false means it already existed.
   );
   PushNotification.localNotificationSchedule({
     channelId: 'channel-id', // (required) channelId, if the channel doesn't exist, notification will not trigger.
-    title: 'My Notification Title', // (optional)
-    message: pray, // (required)
+    title: `The azan of ${pray}`, // (optional)
+    message: `Now is the time for the ${pray} prayer`, // (required)
     date: date, // in 60 secs
     allowWhileIdle: false, // (optional) set notification to work while on doze, default: false
     repeatTime: 1, // (optional) Increment of configured repeatType. Check 'Repeating Notifications' section for more info.

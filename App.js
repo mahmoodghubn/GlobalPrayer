@@ -275,16 +275,18 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 
-export const startNotificationsFromBackground = async prays => {
+export const startNotificationsFromBackground = async (prays, bool) => {
+  //bool means user has changed the method
   const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   let alarm;
-  if (AppState.currentState == 'background') {
+  if (AppState.currentState == 'background' || bool) {
     for (let i = 0; i < 6; i++) {
       try {
         alarm = await AsyncStorage.getItem(praysNames[i]);
         if (alarm == 'true') {
           testSchedule(
             new Date(Date.now() + getRemain(prays[praysNames[i]]) * 1000),
+            //do the notification override the old one
             praysNames[i],
             i,
           );
