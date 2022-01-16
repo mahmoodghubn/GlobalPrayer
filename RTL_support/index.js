@@ -16,6 +16,7 @@ const resources = {
       Isha: 'night',
       Mute: 'Mute Settings',
       Method: 'Change Method',
+      Languages: 'Languages',
     },
   },
   ar: {
@@ -28,6 +29,7 @@ const resources = {
       Isha: 'العشاء',
       Mute: 'اعدادت كتم الصوت',
       Method: 'تغيير الطريقة',
+      Languages: 'تغيير اللغة',
     },
   },
   tr: {
@@ -40,6 +42,7 @@ const resources = {
       Isha: 'yatsı',
       Mute: 'sessiz alma ayarları',
       Method: 'yöntemi değiştir',
+      Languages: 'dil değiştir',
     },
   },
 };

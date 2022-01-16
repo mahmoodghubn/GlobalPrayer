@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {selectPray} from '../logic/database';
 import {checkDndAccess, requestDndAccess} from 'react-native-ringer-mode';
 import {useTranslation} from 'react-i18next';
-
+import {connect} from 'react-redux';
 const reducer = (state, action) => {
   const callSelectPray = action.payload;
   const pray = action.type;
@@ -21,12 +21,12 @@ const reducer = (state, action) => {
   return {...state, [pray]: !state[pray]};
 };
 
-export function MuteSettings() {
+function MuteSettings(props) {
   const {t, i18n} = useTranslation();
 
   const praysNames = [t('Fajr'), t('Dhuhr'), t('Asr'), t('Maghrib'), t('Isha')];
   const praysKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
+  let direction;
   useEffect(() => {
     async function fetchData() {
       let key;
@@ -39,6 +39,7 @@ export function MuteSettings() {
     }
     fetchData();
   }, []);
+  direction = props.RTL ? 'row-reverse' : 'row';
 
   const defaultState = {
     Fajr: false,
@@ -59,7 +60,7 @@ export function MuteSettings() {
     }
   };
   return praysKeys.map((pray, index) => (
-    <View style={styles.prayStyle} key={index}>
+    <View style={{...styles.prayStyle, flexDirection: direction}} key={index}>
       <Text style={styles.text}>{praysNames[index]}</Text>
       <Switch
         trackColor={{false: '#767577', true: '#81b0ff'}}
@@ -72,9 +73,15 @@ export function MuteSettings() {
   ));
 }
 
+function mapStateToProps(state) {
+  return {
+    RTL: state.RTL,
+  };
+}
+
+export default connect(mapStateToProps)(MuteSettings);
 const styles = StyleSheet.create({
   prayStyle: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'space-between',
     backgroundColor: '#aaa',

@@ -13,15 +13,15 @@ import {MyHeadlessTask} from './index';
 import {createTable} from './logic/database';
 import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
-import {MuteSettings} from './components/MuteSettings';
+import MuteSettings from './components/MuteSettings';
 import {DrawerContent} from './components/DrawerContent';
 import PushNotification from 'react-native-push-notification';
-import {fetchPraysRequest, store} from './store';
+import {changeStylesSides, fetchPraysRequest, store} from './store';
 import Method from './components/Method';
 import {LogBox} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {Languages} from './RTL_support/Languages';
-
+import {Provider} from 'react-redux';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -76,7 +76,16 @@ const App = ({praysData, fetchPrays}) => {
       if (!lan) {
         lan = 'en';
       }
-      i18n.changeLanguage(lan).then(() => {});
+      i18n.changeLanguage(lan).then(() => {
+        if (lan === 'ar') {
+          console.log('the language is arabic');
+          store.dispatch(changeStylesSides(true));
+        } else {
+          console.log('the language is not arabic');
+
+          store.dispatch(changeStylesSides(false));
+        }
+      });
 
       let pray;
       for (let i = 0; i < 6; i++) {
@@ -188,6 +197,7 @@ const App = ({praysData, fetchPrays}) => {
       <View>
         <View style={styles.meanScreen}>
           <Hour
+            direction={praysData.RTL}
             nextPray={t([nextTimeName])}
             nextPrayTime={nextTime}
             timer={hour}
@@ -197,6 +207,7 @@ const App = ({praysData, fetchPrays}) => {
           praysData.prays &&
           giveOrderedPrays(praysData.prays).map((element, index) => (
             <Pray
+              direction={praysData.RTL}
               key={index}
               pray={praysTranslation[index]}
               time={element}
@@ -242,50 +253,52 @@ const App = ({praysData, fetchPrays}) => {
   ) : praysData.error ? (
     <Text>{praysData.error}</Text>
   ) : (
-    <NavigationContainer>
-      <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
-        <Drawer.Screen name="Silent Pray" component={HomeScreen} />
-        <Drawer.Screen
-          name={t('Mute')}
-          component={MuteSettings}
-          options={({navigation}) => ({
-            headerLeft: () => (
-              <Icon.Button
-                name="arrow-back-outline"
-                color="#000"
-                backgroundColor="#fff"
-                onPress={() => navigation.goBack()}></Icon.Button>
-            ),
-          })}
-        />
-        <Drawer.Screen
-          name={t('Method')}
-          component={Method}
-          options={({navigation}) => ({
-            headerLeft: () => (
-              <Icon.Button
-                name="arrow-back-outline"
-                color="#000"
-                backgroundColor="#fff"
-                onPress={() => navigation.goBack()}></Icon.Button>
-            ),
-          })}
-        />
-        <Drawer.Screen
-          name="Languages"
-          component={Languages}
-          options={({navigation}) => ({
-            headerLeft: () => (
-              <Icon.Button
-                name="arrow-back-outline"
-                color="#000"
-                backgroundColor="#fff"
-                onPress={() => navigation.goBack()}></Icon.Button>
-            ),
-          })}
-        />
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
+          <Drawer.Screen name="Silent Pray" component={HomeScreen} />
+          <Drawer.Screen
+            name="Mute"
+            component={MuteSettings}
+            options={({navigation}) => ({
+              headerLeft: () => (
+                <Icon.Button
+                  name="arrow-back-outline"
+                  color="#000"
+                  backgroundColor="#fff"
+                  onPress={() => navigation.goBack()}></Icon.Button>
+              ),
+            })}
+          />
+          <Drawer.Screen
+            name="Method"
+            component={Method}
+            options={({navigation}) => ({
+              headerLeft: () => (
+                <Icon.Button
+                  name="arrow-back-outline"
+                  color="#000"
+                  backgroundColor="#fff"
+                  onPress={() => navigation.goBack()}></Icon.Button>
+              ),
+            })}
+          />
+          <Drawer.Screen
+            name="Languages"
+            component={Languages}
+            options={({navigation}) => ({
+              headerLeft: () => (
+                <Icon.Button
+                  name="arrow-back-outline"
+                  color="#000"
+                  backgroundColor="#fff"
+                  onPress={() => navigation.goBack()}></Icon.Button>
+              ),
+            })}
+          />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
 

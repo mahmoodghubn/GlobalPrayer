@@ -2,9 +2,11 @@ import React from 'react';
 import {Text, View, StyleSheet} from 'react-native';
 
 const Hour = props => {
-  const {nextPray, nextPrayTime, timer} = {...props};
+  const {direction, nextPray, nextPrayTime, timer} = {...props};
+  let align = direction ? 'flex-end' : 'flex-start';
+
   return (
-    <View style={styles.hourStyle}>
+    <View style={{...styles.hourStyle, alignItems: align}}>
       <Text style={styles.text}>{nextPray}</Text>
       <Text style={styles.text}>{nextPrayTime}</Text>
       <Text style={styles.text}>{timer}</Text>

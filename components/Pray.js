@@ -2,11 +2,13 @@ import React from 'react';
 import {View, StyleSheet, TextStyle, Text, Switch} from 'react-native';
 
 const Pray = props => {
-  const {pray, time, alarmValue, onchangeAlarm} = {...props};
+  const {direction, pray, time, alarmValue, onchangeAlarm} = {...props};
+  let flexDir = direction ? 'row-reverse' : 'row';
+
   return (
-    <View style={styles.prayStyle}>
+    <View style={{...styles.prayStyle, flexDirection: flexDir}}>
       <Text style={styles.text}>{pray}</Text>
-      <View style={{flexDirection: 'row'}}>
+      <View style={{flexDirection: flexDir}}>
         <Text style={styles.text}>{time}</Text>
         <Switch
           trackColor={{false: '#767577', true: '#81b0ff'}}
@@ -21,7 +23,6 @@ const Pray = props => {
 };
 const styles = StyleSheet.create({
   prayStyle: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'space-between',
     backgroundColor: '#aaa',

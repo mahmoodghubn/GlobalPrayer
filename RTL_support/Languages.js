@@ -3,14 +3,24 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {changeStylesSides, store} from '../store';
 export function Languages({navigation}) {
   const {i18n} = useTranslation();
   const languagesNames = ['English', 'العربية', 'Türkçe'];
   const abbreviatedLanguages = ['en', 'ar', 'tr'];
 
   const onPress = lan => {
-    AsyncStorage.setItem('I18N_LANGUAGE', lan);
-    i18n.changeLanguage(lan).then(() => {});
+    const language = i18n.language;
+    if (lan !== language) {
+      AsyncStorage.setItem('I18N_LANGUAGE', lan);
+      i18n.changeLanguage(lan).then(() => {
+        if (lan === 'ar') {
+          store.dispatch(changeStylesSides(true));
+        } else {
+          store.dispatch(changeStylesSides(false));
+        }
+      });
+    }
     navigation.goBack();
   };
 
