@@ -23,6 +23,7 @@ import Example from './Example';
 import PushNotification, {Importance} from 'react-native-push-notification';
 import {startNotificationsFromBackground} from './App';
 import buildUrl from './logic/buildUrl';
+import './RTL_support/index';
 
 PushNotification.configure({
   onRegister: function (token) {

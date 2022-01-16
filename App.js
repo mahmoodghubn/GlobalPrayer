@@ -19,8 +19,14 @@ import PushNotification from 'react-native-push-notification';
 import {fetchPraysRequest, store} from './store';
 import Method from './components/Method';
 import {LogBox} from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {Languages} from './RTL_support/Languages';
+
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
+const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
 const App = ({praysData, fetchPrays}) => {
+  const {t, i18n} = useTranslation();
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
@@ -66,6 +72,12 @@ const App = ({praysData, fetchPrays}) => {
     createTable();
     startService();
     async function fetchData() {
+      let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
+      if (!lan) {
+        lan = 'en';
+      }
+      i18n.changeLanguage(lan).then(() => {});
+
       let pray;
       for (let i = 0; i < 6; i++) {
         pray = await AsyncStorage.getItem(praysNames[i]);
@@ -151,8 +163,15 @@ const App = ({praysData, fetchPrays}) => {
 
     setHour(`${hour2}:${min}:${sec3}`);
   };
+  const praysTranslation = [
+    t('Fajr'),
+    t('Sunrise'),
+    t('Dhuhr'),
+    t('Asr'),
+    t('Maghrib'),
+    t('Isha'),
+  ];
 
-  const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   const giveOrderedPrays = praysData => {
     return [
       praysData.Fajr,
@@ -168,14 +187,18 @@ const App = ({praysData, fetchPrays}) => {
     return (
       <View>
         <View style={styles.meanScreen}>
-          <Hour nextPray={nextTimeName} nextPrayTime={nextTime} timer={hour} />
+          <Hour
+            nextPray={t([nextTimeName])}
+            nextPrayTime={nextTime}
+            timer={hour}
+          />
         </View>
         {praysData &&
           praysData.prays &&
           giveOrderedPrays(praysData.prays).map((element, index) => (
             <Pray
               key={index}
-              pray={praysNames[index]}
+              pray={praysTranslation[index]}
               time={element}
               alarmValue={state[praysNames[index]]}
               onchangeAlarm={() => dispatcher(praysNames[index], element)}
@@ -194,12 +217,10 @@ const App = ({praysData, fetchPrays}) => {
     const prayTime = payload;
     const pray = type;
     AsyncStorage.setItem(pray, JSON.stringify(!state[pray]));
-    const praysName = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
     if (prayTime && isPrayPassed(prayTime)) {
       let id = 0;
       for (let i = 0; i < 6; i++) {
-        if (pray == praysName[i]) {
+        if (pray == praysNames[i]) {
           id = i;
         }
       }
@@ -225,7 +246,7 @@ const App = ({praysData, fetchPrays}) => {
       <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
         <Drawer.Screen name="Silent Pray" component={HomeScreen} />
         <Drawer.Screen
-          name="Mute Settings"
+          name={t('Mute')}
           component={MuteSettings}
           options={({navigation}) => ({
             headerLeft: () => (
@@ -238,8 +259,21 @@ const App = ({praysData, fetchPrays}) => {
           })}
         />
         <Drawer.Screen
-          name="Change Method"
+          name={t('Method')}
           component={Method}
+          options={({navigation}) => ({
+            headerLeft: () => (
+              <Icon.Button
+                name="arrow-back-outline"
+                color="#000"
+                backgroundColor="#fff"
+                onPress={() => navigation.goBack()}></Icon.Button>
+            ),
+          })}
+        />
+        <Drawer.Screen
+          name="Languages"
+          component={Languages}
           options={({navigation}) => ({
             headerLeft: () => (
               <Icon.Button
@@ -277,7 +311,6 @@ export default connect(mapStateToProps, mapDispatchToProps)(App);
 
 export const startNotificationsFromBackground = async (prays, bool) => {
   //bool means user has changed the method
-  const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   let alarm;
   if (AppState.currentState == 'background' || bool) {
     for (let i = 0; i < 6; i++) {

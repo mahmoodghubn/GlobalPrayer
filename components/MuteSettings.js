@@ -3,6 +3,8 @@ import {View, Text, StyleSheet, Switch} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {selectPray} from '../logic/database';
 import {checkDndAccess, requestDndAccess} from 'react-native-ringer-mode';
+import {useTranslation} from 'react-i18next';
+
 const reducer = (state, action) => {
   const callSelectPray = action.payload;
   const pray = action.type;
@@ -20,7 +22,10 @@ const reducer = (state, action) => {
 };
 
 export function MuteSettings() {
-  const praysNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  const {t, i18n} = useTranslation();
+
+  const praysNames = [t('Fajr'), t('Dhuhr'), t('Asr'), t('Maghrib'), t('Isha')];
+  const praysKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
   useEffect(() => {
     async function fetchData() {
@@ -53,9 +58,9 @@ export function MuteSettings() {
       dispatch({type: pray, payload: true});
     }
   };
-  return praysNames.map((pray, index) => (
+  return praysKeys.map((pray, index) => (
     <View style={styles.prayStyle} key={index}>
-      <Text style={styles.text}>{pray}</Text>
+      <Text style={styles.text}>{praysNames[index]}</Text>
       <Switch
         trackColor={{false: '#767577', true: '#81b0ff'}}
         thumbColor={state[pray] ? '#f5dd4b' : '#f4f3f4'}
