@@ -174,27 +174,20 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
 
-    public void startService(int isDataUpdated) {
+    public void startService() {
         Date date = new Date();   // given date
         Calendar calendar = Calendar.getInstance(); // creates a new calendar instance
         calendar.setTime(date);   // assigns calendar to given date
         int hour = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
         int minute = calendar.get(Calendar.MINUTE);
         int delay = (24 * 60) - (minute + hour * 60);
-        //TODO put the value determined where is data updated or not in here
 
-        Data myData = new Data.Builder()
-                // We need to pass three integers: X, Y, and Z
-                .putInt("isDataUpdated", isDataUpdated)
-                // ... and build the actual Data object:
-                .build();
         //setBackoffCriteria should depend on the country if the country is likely to not have internet connection for long time this means we will not depend on the internet connection to be set up
         OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(WorkerExample.class)
                 .setBackoffCriteria(
                         BackoffPolicy.LINEAR,
                         15,
                         TimeUnit.MINUTES)
-                .setInputData(myData)
                 .build();
 
 

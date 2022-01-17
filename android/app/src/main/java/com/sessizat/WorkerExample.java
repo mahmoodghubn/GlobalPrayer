@@ -37,8 +37,6 @@ public class WorkerExample extends Worker {
     @NotNull
     @Override
     public Result doWork() {
-        int isDataUpdated = getInputData().getInt("isDataUpdated", 1);
-
         Date date = new Date();   // given date
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -53,7 +51,7 @@ public class WorkerExample extends Worker {
 
         if (!foreground) {
 
-            if ((day == 1) && (!isConnected) && (isDataUpdated != 1)) {//also the app must be in the background or the alarm will not be set
+            if ((day == 1) && (!isConnected)) {//also the app must be in the background or the alarm will not be set
                 return Result.retry();
             }
 

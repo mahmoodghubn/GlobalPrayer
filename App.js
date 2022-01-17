@@ -25,42 +25,36 @@ import {Provider} from 'react-redux';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
+const getRemainSeconds = pray => {
+  const hour = new Date().getHours();
+  const minute = new Date().getMinutes();
+  const time = minute * 60 + hour * 3600;
+  const prayHour = parseInt(pray.slice(0, 2));
+  const prayMinute = parseInt(pray.slice(3, 5));
+  const prayTime = prayHour * 3600 + prayMinute * 60;
+  if (time < prayTime) {
+    return prayTime - time;
+  } else {
+    return 24 * 3600 - time + prayTime;
+  }
+};
+
+const isPrayPassed = prayTime => {
+  //we can abandon this function
+  const hour = new Date().getHours();
+  const minute = new Date().getMinutes();
+  const time = minute + hour * 60;
+  const prayHour = parseInt(prayTime.slice(0, 2));
+  const prayMinute = parseInt(prayTime.slice(3, 5));
+  const namazVakti = prayHour * 60 + prayMinute;
+  return namazVakti > time;
+};
 const App = ({praysData, fetchPrays}) => {
   const {t, i18n} = useTranslation();
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [hour, setHour] = useState();
-
-  const getRemainSeconds = pray => {
-    let remain;
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute * 60 + hour * 3600;
-    const prayHour = parseInt(pray.slice(0, 2));
-    const prayMinute = parseInt(pray.slice(3, 5));
-    const prayTime = prayHour * 3600 + prayMinute * 60;
-    if (nextTimeName != 'Fajr') {
-      remain = prayTime - time;
-    } else {
-      if (time < prayTime) {
-        remain = prayTime - time;
-      } else {
-        remain = 24 * 3600 - time + prayTime;
-      }
-    }
-    return remain;
-  };
-
-  const isPrayPassed = prayTime => {
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
-    const time = minute + hour * 60;
-    const prayHour = parseInt(prayTime.slice(0, 2));
-    const prayMinute = parseInt(prayTime.slice(3, 5));
-    const namazVakti = prayHour * 60 + prayMinute;
-    return namazVakti > time;
-  };
 
   const reducer = (state, action) => {
     const pray = action.type;
@@ -70,7 +64,7 @@ const App = ({praysData, fetchPrays}) => {
   useEffect(() => {
     store.dispatch(fetchPraysRequest());
     createTable();
-    startService();
+    Example.startService();
     async function fetchData() {
       let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
       if (!lan) {
@@ -78,11 +72,8 @@ const App = ({praysData, fetchPrays}) => {
       }
       i18n.changeLanguage(lan).then(() => {
         if (lan === 'ar') {
-          console.log('the language is arabic');
           store.dispatch(changeStylesSides(true));
         } else {
-          console.log('the language is not arabic');
-
           store.dispatch(changeStylesSides(false));
         }
       });
@@ -98,16 +89,6 @@ const App = ({praysData, fetchPrays}) => {
     fetchData();
   }, []);
 
-  const startService = async () => {
-    const dateOfDatabase = await AsyncStorage.getItem('database_month');
-    const thisMonth = new Date().getMonth();
-    if (thisMonth == dateOfDatabase) {
-      Example.startService(1);
-    } else {
-      Example.startService(0);
-    }
-  };
-
   let intervalId;
   useEffect(() => {
     startTimer();
@@ -116,21 +97,18 @@ const App = ({praysData, fetchPrays}) => {
     };
   }, [seconds]);
 
+  const fromSecondsToHour = seconds => {
+    let parameter = seconds % 3600;
+    let second = parameter % 60;
+    let hour = (seconds - parameter) / 3600;
+    let min = (parameter - second) / 60;
+    second = second < 10 ? `0${second}` : second;
+    min = min < 10 ? `0${min}` : min;
+    hour = hour < 10 ? `0${hour}` : hour;
+    setHour(`${hour}:${min}:${second}`);
+  };
   const startTimer = () => {
     intervalId = BackgroundTimer.setInterval(() => {
-      let sec1;
-      let sec2;
-      let sec3 = 0;
-      let hour = 0;
-      let min = 0;
-      if (seconds > 0) {
-        sec1 = seconds - 1;
-        sec2 = sec1 % 3600;
-        sec3 = sec2 % 60;
-        hour = (sec1 - sec2) / 3600;
-        min = (sec2 - sec3) / 60;
-      }
-      setHour(`${hour}:${min}:${sec3}`);
       setSeconds(secs => {
         if (secs > 0) {
           return secs - 1;
@@ -139,6 +117,7 @@ const App = ({praysData, fetchPrays}) => {
           return 0;
         }
       });
+      fromSecondsToHour(seconds);
     }, 1000);
   };
 
@@ -165,12 +144,7 @@ const App = ({praysData, fetchPrays}) => {
     setNextTimeName(prop.nextTimeName);
     const remain = getRemainSeconds(prop.nextTime);
     setSeconds(remain);
-    const sec2 = remain % 3600;
-    const sec3 = sec2 % 60;
-    const hour2 = (remain - sec2) / 3600;
-    const min = (sec2 - sec3) / 60;
-
-    setHour(`${hour2}:${min}:${sec3}`);
+    fromSecondsToHour(remain);
   };
   const praysTranslation = [
     t('Fajr'),
@@ -325,13 +299,15 @@ export default connect(mapStateToProps, mapDispatchToProps)(App);
 export const startNotificationsFromBackground = async (prays, bool) => {
   //bool means user has changed the method
   let alarm;
+  let prayTime;
   if (AppState.currentState == 'background' || bool) {
     for (let i = 0; i < 6; i++) {
       try {
         alarm = await AsyncStorage.getItem(praysNames[i]);
-        if (alarm == 'true') {
+        prayTime = prays[praysNames[i]];
+        if (alarm == 'true' && isPrayPassed(prayTime)) {
           testSchedule(
-            new Date(Date.now() + getRemain(prays[praysNames[i]]) * 1000),
+            new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
             //do the notification override the old one
             praysNames[i],
             i,
@@ -342,14 +318,4 @@ export const startNotificationsFromBackground = async (prays, bool) => {
       }
     }
   }
-};
-
-const getRemain = pray => {
-  const hour = new Date().getHours();
-  const minute = new Date().getMinutes();
-  const time = minute * 60 + hour * 3600;
-  const prayHour = parseInt(pray.slice(0, 2));
-  const prayMinute = parseInt(pray.slice(3, 5));
-  const prayTime = prayHour * 3600 + prayMinute * 60;
-  return prayTime - time;
 };
