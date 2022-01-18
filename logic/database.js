@@ -38,23 +38,11 @@ export const getMonthPrayingTimes = async data => {
   if (year % 4 == 0 && mon == 1) {
     days = 29;
   }
-  let Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha;
-  let date = new Date();
-  let offsetInHours = date.getTimezoneOffset() / 60;
-  let praydd = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
-  let prayHour;
   for (let i = 0; i < days; i++) {
     let data2 = data[i];
     let {timings} = {...data2};
     for (key in timings) {
-      if (praydd.hasOwnProperty(key)) {
-        prayHour = parseInt(timings[key].slice(0, 2)) - offsetInHours;
-        if (prayHour < 10) {
-          timings[key] = '0' + prayHour + timings[key].slice(2, 5);
-        } else {
-          timings[key] = prayHour + timings[key].slice(2, 5);
-        }
-      }
+      timings[key] = timings[key].slice(0, 5);
     }
     let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
     await insert(i + 1, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);

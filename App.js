@@ -5,7 +5,14 @@ import nextPray from './logic/nextPray';
 import {testSchedule} from './logic/notification';
 import BackgroundTimer from 'react-native-background-timer';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {StyleSheet, View, Text, AppState, Image} from 'react-native';
+import {
+  PermissionsAndroid,
+  View,
+  Text,
+  AppState,
+  Image,
+  StyleSheet,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
@@ -22,6 +29,8 @@ import {LogBox} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {Languages} from './RTL_support/Languages';
 import {Provider} from 'react-redux';
+import Geolocation from '@react-native-community/geolocation';
+
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -55,16 +64,12 @@ const App = ({praysData, fetchPrays}) => {
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [hour, setHour] = useState();
-
   const reducer = (state, action) => {
     const pray = action.type;
     return {...state, [pray]: !state[pray]};
   };
 
   useEffect(() => {
-    store.dispatch(fetchPraysRequest());
-    createTable();
-    Example.startService();
     async function fetchData() {
       let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
       if (!lan) {
@@ -86,9 +91,35 @@ const App = ({praysData, fetchPrays}) => {
         }
       }
     }
-    fetchData();
-  }, []);
+    const requestLocationPermission = async () => {
+      //   if (Platform.OS === 'ios') {
+      //     getOneTimeLocation();
+      //     subscribeLocationLocation();
+      //   } else
+      // {
 
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Access Required',
+            message: 'This App needs to Access your location',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          store.dispatch(fetchPraysRequest());
+          createTable();
+          Example.startService();
+          fetchData();
+        } else {
+          // setLocationStatus('Permission Denied');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    };
+    requestLocationPermission();
+  }, []);
   let intervalId;
   useEffect(() => {
     startTimer();

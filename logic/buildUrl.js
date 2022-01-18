@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 
 const buildUrl = async () => {
   try {
@@ -10,13 +11,35 @@ const buildUrl = async () => {
     } else {
       method = '13';
     }
-    const month = new Date().getMonth() + 1;
-    const year = new Date().getFullYear();
-    const url = `https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=${method}&month=${month}&year=${year}`;
-    console.log(url);
+    const url = await getOneTimeLocation(method);
     return url;
   } catch (error) {
     console.log(error.message);
   }
+};
+
+const getOneTimeLocation = method => {
+  return new Promise(function (resolve, reject) {
+    Geolocation.getCurrentPosition(
+      position => {
+        console.log(position);
+        const currentLongitude = JSON.stringify(position.coords.longitude);
+        const currentLatitude = JSON.stringify(position.coords.latitude);
+        const month = new Date().getMonth() + 1;
+        const year = new Date().getFullYear();
+        const url = `https://api.aladhan.com/v1/calendar?latitude=${currentLatitude}&longitude=${currentLongitude}&method=${method}&month=${month}&year=${year}`;
+        console.log(url);
+        resolve(url);
+      },
+      error => {
+        reject(error);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 30000,
+        maximumAge: 1000,
+      },
+    );
+  });
 };
 export default buildUrl;

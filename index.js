@@ -108,21 +108,11 @@ export const fetchNewData = async () => {
       const day = new Date().getDate();
       let data2 = data[day - 1];
       let {timings} = {...data2};
-      let date = new Date();
-      let offsetInHours = date.getTimezoneOffset() / 60;
       let Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha;
       let prayDay = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
       let prayer = {};
-      let prayHour;
-      for (key in timings) {
-        if (prayDay.hasOwnProperty(key)) {
-          prayHour = parseInt(timings[key].slice(0, 2)) - offsetInHours;
-          if (prayHour < 10) {
-            prayer[key] = '0' + prayHour + timings[key].slice(2, 5);
-          } else {
-            prayer[key] = prayHour + timings[key].slice(2, 5);
-          }
-        }
+      for (key in prayDay) {
+        prayer[key] = timings[key].slice(0, 5);
       }
       startNotificationsFromBackground({...prayer}, true);
       getSilentPrays();

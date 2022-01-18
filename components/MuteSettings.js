@@ -32,9 +32,9 @@ function MuteSettings(props) {
       let key;
       let pray;
       for (let i = 0; i < 5; i++) {
-        key = praysNames[i] + 'Silent';
+        key = praysKeys[i] + 'Silent';
         pray = await AsyncStorage.getItem(key);
-        if (pray == 'true') dispatch({type: praysNames[i], payload: false});
+        if (pray == 'true') dispatch({type: praysKeys[i], payload: false});
       }
     }
     fetchData();
