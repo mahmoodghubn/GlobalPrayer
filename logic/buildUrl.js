@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {AppState} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 
@@ -11,7 +12,16 @@ const buildUrl = async () => {
     } else {
       method = '13';
     }
-    const url = await getOneTimeLocation(method);
+    let url;
+    if (AppState.currentState != 'background') {
+      url = await getOneTimeLocation(method);
+    } else {
+      const currentLongitude = await AsyncStorage.getItem('longitude');
+      const currentLatitude = await AsyncStorage.getItem('latitude');
+      const month = new Date().getMonth() + 1;
+      const year = new Date().getFullYear();
+      url = `https://api.aladhan.com/v1/calendar?latitude=${currentLatitude}&longitude=${currentLongitude}&method=${method}&month=${month}&year=${year}`;
+    }
     return url;
   } catch (error) {
     console.log(error.message);
@@ -22,13 +32,13 @@ const getOneTimeLocation = method => {
   return new Promise(function (resolve, reject) {
     Geolocation.getCurrentPosition(
       position => {
-        console.log(position);
         const currentLongitude = JSON.stringify(position.coords.longitude);
         const currentLatitude = JSON.stringify(position.coords.latitude);
+        AsyncStorage.setItem('longitude', currentLongitude);
+        AsyncStorage.setItem('latitude', currentLatitude);
         const month = new Date().getMonth() + 1;
         const year = new Date().getFullYear();
         const url = `https://api.aladhan.com/v1/calendar?latitude=${currentLatitude}&longitude=${currentLongitude}&method=${method}&month=${month}&year=${year}`;
-        console.log(url);
         resolve(url);
       },
       error => {

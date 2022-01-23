@@ -170,6 +170,8 @@ public class ExampleModule extends ReactContextBaseJavaModule {
             setQuietAlarm(quietHour, quietMinute, requestCodeQuietAlarm);
             setSoundAlarm(soundHour, soundMinute, requestCodeSoundAlarm);
         }
+        reactContext.stopService(new Intent(reactContext, ExampleService.class));
+        
     }
 
     @ReactMethod
