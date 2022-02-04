@@ -30,7 +30,7 @@ import {useTranslation} from 'react-i18next';
 import {Languages} from './RTL_support/Languages';
 import {Provider} from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
-
+import CircularProgress from './components/CircularProgress';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -49,7 +49,6 @@ const getRemainSeconds = pray => {
 };
 
 const isPrayPassed = prayTime => {
-  //we can abandon this function
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const time = minute + hour * 60;
@@ -58,12 +57,12 @@ const isPrayPassed = prayTime => {
   const namazVakti = prayHour * 60 + prayMinute;
   return namazVakti > time;
 };
+
 const App = ({praysData, fetchPrays}) => {
   const {t, i18n} = useTranslation();
   const [nextTime, setNextTime] = useState();
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
-  const [hour, setHour] = useState();
   const reducer = (state, action) => {
     const pray = action.type;
     return {...state, [pray]: !state[pray]};
@@ -120,42 +119,8 @@ const App = ({praysData, fetchPrays}) => {
     };
     requestLocationPermission();
   }, []);
-  let intervalId;
   useEffect(() => {
-    startTimer();
-    return () => {
-      BackgroundTimer.clearInterval(intervalId); //only android
-    };
-  }, [seconds]);
-
-  const fromSecondsToHour = seconds => {
-    let parameter = seconds % 3600;
-    let second = parameter % 60;
-    let hour = (seconds - parameter) / 3600;
-    let min = (parameter - second) / 60;
-    second = second < 10 ? `0${second}` : second;
-    min = min < 10 ? `0${min}` : min;
-    hour = hour < 10 ? `0${hour}` : hour;
-    setHour(`${hour}:${min}:${second}`);
-  };
-  const startTimer = () => {
-    intervalId = BackgroundTimer.setInterval(() => {
-      setSeconds(secs => {
-        if (secs > 0) {
-          return secs - 1;
-        } else if (Object.keys(praysData.prays).length) {
-          findNextPrayAndSetSeconds();
-          return 0;
-        }
-      });
-      fromSecondsToHour(seconds);
-    }, 1000);
-  };
-
-  useEffect(() => {
-    if (Object.keys(praysData.prays).length) {
-      findNextPrayAndSetSeconds();
-    }
+    findNextPrayAndSetSeconds();
   }, [praysData]);
 
   const defaultState = {
@@ -170,12 +135,13 @@ const App = ({praysData, fetchPrays}) => {
   const [state, send] = useReducer(reducer, defaultState);
 
   const findNextPrayAndSetSeconds = () => {
-    prop = nextPray({praysData});
-    setNextTime(prop.nextTime);
-    setNextTimeName(prop.nextTimeName);
-    const remain = getRemainSeconds(prop.nextTime);
-    setSeconds(remain);
-    fromSecondsToHour(remain);
+    if (Object.keys(praysData.prays).length) {
+      prop = nextPray({praysData});
+      setNextTime(prop.nextTime);
+      setNextTimeName(prop.nextTimeName);
+      const remain = getRemainSeconds(prop.nextTime);
+      setSeconds(remain);
+    }
   };
   const praysTranslation = [
     t('Fajr'),
@@ -196,7 +162,6 @@ const App = ({praysData, fetchPrays}) => {
       praysData.Isha,
     ];
   };
-
   function HomeScreen({navigation}) {
     return (
       <View>
@@ -205,8 +170,10 @@ const App = ({praysData, fetchPrays}) => {
             direction={praysData.RTL}
             nextPray={t([nextTimeName])}
             nextPrayTime={nextTime}
-            timer={hour}
+            timer={seconds}
+            onTimeUp={findNextPrayAndSetSeconds}
           />
+          <CircularProgress></CircularProgress>
         </View>
         {praysData &&
           praysData.prays &&
