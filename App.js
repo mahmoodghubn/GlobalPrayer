@@ -165,7 +165,11 @@ const App = ({praysData, fetchPrays}) => {
   function HomeScreen({navigation}) {
     return (
       <View>
-        <View style={styles.meanScreen}>
+        <View
+          style={{
+            ...styles.meanScreen,
+            flexDirection: praysData.RTL ? 'row-reverse' : 'row',
+          }}>
           <Hour
             direction={praysData.RTL}
             nextPray={t([nextTimeName])}
@@ -173,7 +177,10 @@ const App = ({praysData, fetchPrays}) => {
             timer={seconds}
             onTimeUp={findNextPrayAndSetSeconds}
           />
-          <CircularProgress></CircularProgress>
+          <CircularProgress
+            direction={praysData.RTL}
+            prays={giveOrderedPrays(praysData.prays)}
+          />
         </View>
         {praysData &&
           praysData.prays &&
@@ -277,6 +284,8 @@ const App = ({praysData, fetchPrays}) => {
 const styles = StyleSheet.create({
   meanScreen: {
     margin: 20,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
 });
 
