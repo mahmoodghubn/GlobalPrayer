@@ -183,20 +183,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-
-// let x;
-// return (
-//   // <View style={styles.prayStyle}>
-//   <View style={styles.prayStyle}>
-//     {methods.map((text, key) => {
-//       x = JSON.stringify(key);
-//       return (
-//         <RadioButton
-//           value={x}
-//           status={checked == x ? 'checked' : 'unchecked'}
-//           onPress={() => checkInternetStatus(x)}
-//         />
-//       );
-//     })}
-//   </View>
-// );

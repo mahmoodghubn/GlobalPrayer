@@ -1,28 +1,59 @@
 import React, {useState, useEffect} from 'react';
 import {Text, View, StyleSheet} from 'react-native';
 import BackgroundTimer from 'react-native-background-timer';
+import nextPray from '../logic/nextPray';
+import {useTranslation} from 'react-i18next';
+import {connect} from 'react-redux';
 
-const Hour = props => {
-  const fromSecondsToHour = seconds => {
-    let parameter = seconds % 3600;
-    let second = parameter % 60;
-    let hour = (seconds - parameter) / 3600;
-    let min = (parameter - second) / 60;
-    second = second < 10 ? `0${second}` : second;
-    min = min < 10 ? `0${min}` : min;
-    hour = hour < 10 ? `0${hour}` : hour;
-    setClock(`${hour}:${min}:${second}`);
-  };
+const getRemainSeconds = pray => {
+  const hour = new Date().getHours();
+  const minute = new Date().getMinutes();
+  const time = minute * 60 + hour * 3600;
+  const prayHour = parseInt(pray.slice(0, 2));
+  const prayMinute = parseInt(pray.slice(3, 5));
+  const prayTime = prayHour * 3600 + prayMinute * 60;
+  if (time < prayTime) {
+    return prayTime - time;
+  } else {
+    return 24 * 3600 - time + prayTime;
+  }
+};
+
+const fromSecondsToHour = seconds => {
+  let parameter = seconds % 3600;
+  let second = parameter % 60;
+  let hour = (seconds - parameter) / 3600;
+  let min = (parameter - second) / 60;
+  second = second < 10 ? `0${second}` : second;
+  min = min < 10 ? `0${min}` : min;
+  hour = hour < 10 ? `0${hour}` : hour;
+  return `${hour}:${min}:${second}`;
+};
+
+const Hour = ({praysData}) => {
+  const {t, i18n} = useTranslation();
+  const [nextTime, setNextTime] = useState();
+  const [nextTimeName, setNextTimeName] = useState('');
+  const [seconds, setSeconds] = useState(0);
   const [clock, setClock] = useState();
-  const [seconds, setSeconds] = useState();
-  const {direction, nextPray, nextPrayTime, timer, onTimeUp} = {...props};
-  let align = direction ? 'flex-end' : 'flex-start';
-  let intervalId;
+  const [align, setAlign] = useState('flex-end');
 
+  const findNextPrayAndSetSeconds = () => {
+    if (Object.keys(praysData.prays).length) {
+      prop = nextPray({praysData});
+      setNextTime(prop.nextTime);
+      setNextTimeName(prop.nextTimeName);
+      const remain = getRemainSeconds(prop.nextTime);
+      setSeconds(remain);
+      setClock(fromSecondsToHour(remain));
+    }
+  };
+  let intervalId;
   useEffect(() => {
-    setSeconds(timer);
-    fromSecondsToHour(timer);
-  }, []);
+    setAlign(praysData.RTL ? 'flex-end' : 'flex-start');
+    findNextPrayAndSetSeconds();
+  }, [praysData]);
+
   useEffect(() => {
     startTimer();
     return () => {
@@ -31,21 +62,21 @@ const Hour = props => {
   }, [seconds]);
   const startTimer = () => {
     intervalId = BackgroundTimer.setInterval(() => {
-      setSeconds(secs => {
-        if (secs > 0) {
-          return secs - 1;
+      setSeconds(seconds => {
+        if (seconds > 0) {
+          return seconds - 1;
         } else {
-          onTimeUp();
+          findNextPrayAndSetSeconds();
           return 0;
         }
       });
-      fromSecondsToHour(seconds);
+      setClock(fromSecondsToHour(seconds));
     }, 1000);
   };
   return (
     <View style={{...styles.hourStyle, alignItems: align}}>
-      <Text style={styles.text}>{nextPray}</Text>
-      <Text style={styles.text}>{nextPrayTime}</Text>
+      <Text style={styles.text}>{t([nextTimeName])}</Text>
+      <Text style={styles.text}>{nextTime}</Text>
       <Text style={styles.text}>{clock}</Text>
     </View>
   );
@@ -61,4 +92,11 @@ const styles = StyleSheet.create({
     color: 'black',
   },
 });
-export default Hour;
+
+const mapStateToProps = state => {
+  return {
+    praysData: state,
+  };
+};
+
+export default connect(mapStateToProps)(Hour);

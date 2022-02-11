@@ -18,7 +18,7 @@ interface align {
   prays: string[];
 }
 let strokeDashoffset = new Animated.Value(0);
-const CircularProgress = memo((arg: align) => {
+const CircularProgress: React.FC<align> = memo(arg => {
   const direction = arg.direction;
   var theta: number[] = new Array(6);
   var x: number[] = new Array(6);
@@ -30,7 +30,6 @@ const CircularProgress = memo((arg: align) => {
         parseInt(arg.prays[i].slice(3, 5))) /
       (24 * 60);
     theta[i] = A;
-    console.log(A);
     x[i] = cx - r * cos(A);
     y[i] = -r * sin(A) + cy;
   }
@@ -138,11 +137,3 @@ const CircularProgress = memo((arg: align) => {
   );
 });
 export default CircularProgress;
-// const startAngle = PI + PI * 0.2;
-// const endAngle = 2 * PI - PI * 0.2;
-// const x1 = cx - r * cos(startAngle);
-// const y1 = -r * sin(startAngle) + cy;
-// const x2 = cx - r * cos(endAngle);
-// const y2 = -r * sin(endAngle) + cy;
-// const d1 = `M ${x1} ${y1} A ${r} ${r} 1 0 1 ${x2} ${y2}`;
-// const d2 = `M ${x1} ${y1} A ${r} ${r} 0 1 0 ${x2} ${y2}`;

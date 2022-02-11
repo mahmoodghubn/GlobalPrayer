@@ -1,18 +1,7 @@
-import React, {useState, useEffect, useReducer} from 'react';
-import Pray from './components/Pray';
-import Hour from './components/Hour';
-import nextPray from './logic/nextPray';
+import React, {useState, useEffect, useReducer, useMemo, memo} from 'react';
 import {testSchedule} from './logic/notification';
-import BackgroundTimer from 'react-native-background-timer';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  PermissionsAndroid,
-  View,
-  Text,
-  AppState,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import {PermissionsAndroid, View, Text, AppState, Image} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
@@ -22,16 +11,15 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import MuteSettings from './components/MuteSettings';
 import {DrawerContent} from './components/DrawerContent';
-import PushNotification from 'react-native-push-notification';
-import {changeStylesSides, fetchPraysRequest, store} from './store';
+import {fetchPraysRequest, store} from './store';
 import Method from './components/Method';
 import {LogBox} from 'react-native';
-import {useTranslation} from 'react-i18next';
 import {Languages} from './RTL_support/Languages';
 import {Provider} from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
-import CircularProgress from './components/CircularProgress';
+import HomeScreen from './components/HomeScreen';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
+
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
 const getRemainSeconds = pray => {
@@ -59,37 +47,7 @@ const isPrayPassed = prayTime => {
 };
 
 const App = ({praysData, fetchPrays}) => {
-  const {t, i18n} = useTranslation();
-  const [nextTime, setNextTime] = useState();
-  const [nextTimeName, setNextTimeName] = useState('');
-  const [seconds, setSeconds] = useState(0);
-  const reducer = (state, action) => {
-    const pray = action.type;
-    return {...state, [pray]: !state[pray]};
-  };
-
   useEffect(() => {
-    async function fetchData() {
-      let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
-      if (!lan) {
-        lan = 'en';
-      }
-      i18n.changeLanguage(lan).then(() => {
-        if (lan === 'ar') {
-          store.dispatch(changeStylesSides(true));
-        } else {
-          store.dispatch(changeStylesSides(false));
-        }
-      });
-
-      let pray;
-      for (let i = 0; i < 6; i++) {
-        pray = await AsyncStorage.getItem(praysNames[i]);
-        if (pray == 'true') {
-          send({type: praysNames[i]});
-        }
-      }
-    }
     const requestLocationPermission = async () => {
       //   if (Platform.OS === 'ios') {
       //     getOneTimeLocation();
@@ -109,7 +67,6 @@ const App = ({praysData, fetchPrays}) => {
           store.dispatch(fetchPraysRequest());
           createTable();
           Example.startService();
-          fetchData();
         } else {
           // setLocationStatus('Permission Denied');
         }
@@ -119,112 +76,8 @@ const App = ({praysData, fetchPrays}) => {
     };
     requestLocationPermission();
   }, []);
-  useEffect(() => {
-    findNextPrayAndSetSeconds();
-  }, [praysData]);
-
-  const defaultState = {
-    Fajr: false,
-    Sunrise: false,
-    Dhuhr: false,
-    Asr: false,
-    Maghrib: false,
-    Isha: false,
-  };
-
-  const [state, send] = useReducer(reducer, defaultState);
-
-  const findNextPrayAndSetSeconds = () => {
-    if (Object.keys(praysData.prays).length) {
-      prop = nextPray({praysData});
-      setNextTime(prop.nextTime);
-      setNextTimeName(prop.nextTimeName);
-      const remain = getRemainSeconds(prop.nextTime);
-      setSeconds(remain);
-    }
-  };
-  const praysTranslation = [
-    t('Fajr'),
-    t('Sunrise'),
-    t('Dhuhr'),
-    t('Asr'),
-    t('Maghrib'),
-    t('Isha'),
-  ];
-
-  const giveOrderedPrays = praysData => {
-    return [
-      praysData.Fajr,
-      praysData.Sunrise,
-      praysData.Dhuhr,
-      praysData.Asr,
-      praysData.Maghrib,
-      praysData.Isha,
-    ];
-  };
-  function HomeScreen({navigation}) {
-    return (
-      <View>
-        <View
-          style={{
-            ...styles.meanScreen,
-            flexDirection: praysData.RTL ? 'row-reverse' : 'row',
-          }}>
-          <Hour
-            direction={praysData.RTL}
-            nextPray={t([nextTimeName])}
-            nextPrayTime={nextTime}
-            timer={seconds}
-            onTimeUp={findNextPrayAndSetSeconds}
-          />
-          <CircularProgress
-            direction={praysData.RTL}
-            prays={giveOrderedPrays(praysData.prays)}
-          />
-        </View>
-        {praysData &&
-          praysData.prays &&
-          giveOrderedPrays(praysData.prays).map((element, index) => (
-            <Pray
-              direction={praysData.RTL}
-              key={index}
-              pray={praysTranslation[index]}
-              time={element}
-              alarmValue={state[praysNames[index]]}
-              onchangeAlarm={() => dispatcher(praysNames[index], element)}
-            />
-          ))}
-      </View>
-    );
-  }
   const Drawer = createDrawerNavigator();
 
-  const dispatcher = (type, payload) => {
-    const bool = !state[pray];
-    send({
-      type: type,
-    });
-    const prayTime = payload;
-    const pray = type;
-    AsyncStorage.setItem(pray, JSON.stringify(!state[pray]));
-    if (prayTime && isPrayPassed(prayTime)) {
-      let id = 0;
-      for (let i = 0; i < 6; i++) {
-        if (pray == praysNames[i]) {
-          id = i;
-        }
-      }
-      if (bool) {
-        testSchedule(
-          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
-          pray,
-          id,
-        );
-      } else {
-        PushNotification.cancelLocalNotification(id);
-      }
-    }
-  };
   return praysData.loading ? (
     <View>
       <Image source={require('./assets/aksa.jpg')} />
@@ -280,14 +133,6 @@ const App = ({praysData, fetchPrays}) => {
     </Provider>
   );
 };
-
-const styles = StyleSheet.create({
-  meanScreen: {
-    margin: 20,
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-});
 
 const mapStateToProps = state => {
   return {

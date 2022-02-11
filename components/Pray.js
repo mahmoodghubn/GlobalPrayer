@@ -1,24 +1,52 @@
 import React from 'react';
 import {View, StyleSheet, TextStyle, Text, Switch} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Pray = props => {
-  const {direction, pray, time, alarmValue, onchangeAlarm} = {...props};
+  const {direction, index, pray, time, alarmValue, onchangeAlarm} = {...props};
   let flexDir = direction ? 'row-reverse' : 'row';
+  let color_index = index * 2;
+  const colors = [
+    '#9E3C44',
+    '#9E1C44',
+    '#ECa31C',
+    '#EC931C',
+    '#F2e201',
+    '#F2F201',
+    '#02d302',
+    '#02C302',
+    '#0253F1',
+    '#0243F1',
+    '#608d8b',
+    '#607d8b',
+  ];
+  const getIcon = () => {
+    return alarmValue ? (
+      <Icon.Button
+        name="volume-high-outline"
+        color="#000"
+        backgroundColor={colors[color_index]}
+        onPress={onchangeAlarm}></Icon.Button>
+    ) : (
+      <Icon.Button
+        name="volume-mute-outline"
+        color="#000"
+        backgroundColor={colors[color_index]}
+        onPress={onchangeAlarm}></Icon.Button>
+    );
+  };
 
   return (
-    <View style={{...styles.prayStyle, flexDirection: flexDir}}>
+    <LinearGradient
+      colors={[colors[color_index], colors[color_index + 1]]}
+      style={{...styles.prayStyle, flexDirection: flexDir}}>
       <Text style={styles.text}>{pray}</Text>
       <View style={{flexDirection: flexDir}}>
         <Text style={styles.text}>{time}</Text>
-        <Switch
-          trackColor={{false: '#767577', true: '#81b0ff'}}
-          thumbColor={alarmValue ? '#f5dd4b' : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={onchangeAlarm}
-          value={alarmValue}
-        />
+        {getIcon()}
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 const styles = StyleSheet.create({
