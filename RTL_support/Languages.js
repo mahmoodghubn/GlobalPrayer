@@ -43,7 +43,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'stretch',
     margin: 20,
-    borderColor: ' black',
+    borderRadius: 5,
+    borderWidth: 2,
+    paddingVertical: 10,
   },
   text: {
     textAlign: 'center',

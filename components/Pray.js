@@ -8,18 +8,18 @@ const Pray = props => {
   let flexDir = direction ? 'row-reverse' : 'row';
   let color_index = index * 2;
   const colors = [
-    '#9E3C44',
-    '#9E1C44',
-    '#ECa31C',
-    '#EC931C',
+    '#5D4037',
+    '#6D5047',
+    '#00796B',
+    '#00796B',
     '#F2e201',
     '#F2F201',
-    '#02d302',
-    '#02C302',
+    '#455A64',
+    '#455A64',
+    '#F57C00',
+    '#F57C00',
     '#0253F1',
     '#0243F1',
-    '#608d8b',
-    '#607d8b',
   ];
   const getIcon = () => {
     return alarmValue ? (
@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   prayStyle: {
     justifyContent: 'space-between',
     alignItems: 'space-between',
-    backgroundColor: '#aaa',
     margin: 10,
     padding: 10,
     borderRadius: 5,

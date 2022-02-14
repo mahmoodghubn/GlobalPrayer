@@ -8,12 +8,12 @@ import i18next from 'i18next';
 const resources = {
   en: {
     translation: {
-      Fajr: 'dawn',
+      Fajr: 'Dawn',
       Sunrise: 'Sunrise',
-      Dhuhr: 'noon',
-      Asr: 'afternoon',
-      Maghrib: 'sunset',
-      Isha: 'night',
+      Dhuhr: 'Noon',
+      Asr: 'Afternoon',
+      Maghrib: 'Sunset',
+      Isha: 'Night',
       Mute: 'Mute Settings',
       Method: 'Change Method',
       Languages: 'Languages',
@@ -34,15 +34,15 @@ const resources = {
   },
   tr: {
     translation: {
-      Fajr: 'şafak',
-      Sunrise: 'güneş',
-      Dhuhr: 'öğlen',
-      Asr: 'ikinde',
-      Maghrib: 'akşam',
-      Isha: 'yatsı',
-      Mute: 'sessiz alma ayarları',
-      Method: 'yöntemi değiştir',
-      Languages: 'dil değiştir',
+      Fajr: 'Şafak',
+      Sunrise: 'Güneş',
+      Dhuhr: 'Öğlen',
+      Asr: 'İkinde',
+      Maghrib: 'Akşam',
+      Isha: 'Yatsı',
+      Mute: 'Sessiz Alma Ayarları',
+      Method: 'Yöntemi Değiştir',
+      Languages: 'Dil Değiştir',
     },
   },
 };
@@ -51,7 +51,6 @@ i18n
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
     compatibilityJSON: 'v3',
-
     resources,
     lng: 'en', // language to use, more information here: https://www.i18next.com/overview/configuration-options#languages-namespaces-resources
     // you can use the i18n.changeLanguage function to change the language manually: https://www.i18next.com/overview/api#changelanguage

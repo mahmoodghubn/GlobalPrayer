@@ -10,7 +10,7 @@ import {createTable} from './logic/database';
 import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import MuteSettings from './components/MuteSettings';
-import {DrawerContent} from './components/DrawerContent';
+import DrawerContent from './components/DrawerContent';
 import {fetchPraysRequest, store} from './store';
 import Method from './components/Method';
 import {LogBox} from 'react-native';
@@ -88,7 +88,7 @@ const App = ({praysData, fetchPrays}) => {
     <Provider store={store}>
       <NavigationContainer>
         <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
-          <Drawer.Screen name="Silent Pray" component={HomeScreen} />
+          <Drawer.Screen name="Global Prayer" component={HomeScreen} />
           <Drawer.Screen
             name="Mute"
             component={MuteSettings}

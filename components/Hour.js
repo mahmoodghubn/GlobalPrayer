@@ -36,13 +36,14 @@ const Hour = ({praysData}) => {
   const [nextTimeName, setNextTimeName] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [clock, setClock] = useState();
-  const [align, setAlign] = useState('flex-end');
+  const [color, setColor] = useState('#0243F1');
 
   const findNextPrayAndSetSeconds = () => {
     if (Object.keys(praysData.prays).length) {
       prop = nextPray({praysData});
       setNextTime(prop.nextTime);
       setNextTimeName(prop.nextTimeName);
+      setColor(prop.color);
       const remain = getRemainSeconds(prop.nextTime);
       setSeconds(remain);
       setClock(fromSecondsToHour(remain));
@@ -50,7 +51,6 @@ const Hour = ({praysData}) => {
   };
   let intervalId;
   useEffect(() => {
-    setAlign(praysData.RTL ? 'flex-end' : 'flex-start');
     findNextPrayAndSetSeconds();
   }, [praysData]);
 
@@ -74,22 +74,49 @@ const Hour = ({praysData}) => {
     }, 1000);
   };
   return (
-    <View style={{...styles.hourStyle, alignItems: align}}>
-      <Text style={styles.text}>{t([nextTimeName])}</Text>
-      <Text style={styles.text}>{nextTime}</Text>
-      <Text style={styles.text}>{clock}</Text>
+    <View style={styles.hourStyle}>
+      <Text
+        style={
+          praysData.RTL
+            ? {...styles.text, color: color}
+            : {...styles.text2, color: color}
+        }>
+        {t([nextTimeName])}
+      </Text>
+      <Text
+        style={
+          praysData.RTL
+            ? {...styles.text, color: color}
+            : {...styles.text2, color: color}
+        }>
+        {nextTime}
+      </Text>
+      <Text
+        style={
+          praysData.RTL
+            ? {...styles.text, color: color}
+            : {...styles.text2, color: color}
+        }>
+        {clock}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   hourStyle: {
-    fontSize: 40,
-    color: 'red',
+    margin: 20,
+    alignSelf: 'flex-end',
   },
   text: {
-    fontSize: 20,
+    fontSize: 25,
     color: 'black',
+    alignSelf: 'flex-end',
+  },
+  text2: {
+    fontSize: 25,
+    color: 'black',
+    alignSelf: 'flex-start',
   },
 });
 

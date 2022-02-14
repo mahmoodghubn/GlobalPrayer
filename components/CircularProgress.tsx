@@ -5,9 +5,22 @@ import Svg, {Defs, LinearGradient, Stop, Path, Circle} from 'react-native-svg';
 import Animated from 'react-native-reanimated';
 import {EasingNode, timing} from 'react-native-reanimated';
 const {width} = Dimensions.get('window');
-
-const size = width / 2 - 32;
-const strokeWidth = 10;
+const colors = [
+  '#5D4037',
+  '#6D5047',
+  '#00796B',
+  '#00796B',
+  '#F2e201',
+  '#F2F201',
+  '#455A64',
+  '#455A64',
+  '#F57C00',
+  '#F57C00',
+  '#0253F1',
+  '#0243F1',
+];
+const size = width / 2 - 64;
+const strokeWidth = 15;
 const {PI, cos, sin} = Math;
 const r = (size - strokeWidth) / 2;
 const cx = size / 2;
@@ -56,73 +69,28 @@ const CircularProgress: React.FC<align> = memo(arg => {
     <Animated.View style={{alignItems: align}}>
       <Svg width={size} height={size}>
         <Defs>
-          <LinearGradient id="grad" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#9E3C44" />
-            <Stop offset="1" stopColor="#9E1C44" />
-          </LinearGradient>
-          <LinearGradient id="sunrise" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#ECa31C" />
-            <Stop offset="1" stopColor="#EC931C" />
-          </LinearGradient>
-          <LinearGradient id="dhuhr" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#F2e201" />
-            <Stop offset="1" stopColor="#F2F201" />
-          </LinearGradient>
-          <LinearGradient id="asr" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#02d302" />
-            <Stop offset="1" stopColor="#02C302" />
-          </LinearGradient>
-          <LinearGradient id="maghrib" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#0253F1" />
-            <Stop offset="1" stopColor="#0243F1" />
-          </LinearGradient>
-          <LinearGradient id="isha" x1="0" y1="0" x2="100%" y2="0">
-            <Stop offset="0" stopColor="#608d8b" />
-            <Stop offset="1" stopColor="#607d8b" />
-          </LinearGradient>
+          {colors.map((element, index) => (
+            <LinearGradient
+              key={index}
+              id={index.toString()}
+              x1="0"
+              y1="0"
+              x2="100%"
+              y2="0">
+              <Stop offset="0" stopColor={colors[index * 2]} />
+              <Stop offset="1" stopColor={colors[index * 2 + 1]} />
+            </LinearGradient>
+          ))}
         </Defs>
-        <Path
-          stroke="url(#grad)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[0]}
-          {...{strokeWidth}}
-        />
-        <Path
-          stroke="url(#sunrise)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[1]}
-          {...{strokeWidth}}
-        />
-        <Path
-          stroke="url(#dhuhr)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[2]}
-          {...{strokeWidth}}
-        />
-        <Path
-          stroke="url(#asr)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[3]}
-          {...{strokeWidth}}
-        />
-        <Path
-          stroke="url(#maghrib)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[4]}
-          {...{strokeWidth}}
-        />
-        <Path
-          stroke="url(#isha)"
-          fill="none"
-          strokeDasharray={`${circumference}, ${circumference}`}
-          d={d_string[5]}
-          {...{strokeWidth}}
-        />
+        {d_string.map((element, index) => (
+          <Path
+            stroke={`url(#${index})`}
+            fill="none"
+            strokeDasharray={`${circumference}, ${circumference}`}
+            d={element}
+            {...{strokeWidth}}
+          />
+        ))}
         <AnimatedCircle
           cx={cx}
           cy={cy}

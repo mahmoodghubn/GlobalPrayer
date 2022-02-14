@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {RadioButton} from 'react-native-paper';
 import {fetchNewData} from '../index';
 import Example from '../Example';
+import LinearGradient from 'react-native-linear-gradient';
+
 const method = () => {
   const checkInternetStatus = value => {
     NetInfo.fetch().then(state => {
@@ -37,134 +39,44 @@ const method = () => {
     }
     fetchData();
   }, []);
+  let methods = [
+    'Shia Ithna-Ansari',
+    'University of Islamic Sciences, Karachi',
+    'Islamic Society of North America',
+    'Muslim World League',
+    'Umm Al-Qura University, Makkah',
+    'Egyptian General Authority of Survey',
+    '',
+    'Institute of Geophysics, University of Tehran',
+    'Gulf Region',
+    'Kuwait',
+    'Qatar',
+    'Majlis Ugama Islam Singapura, Singapore',
+    'Union Organization islamic de France',
+    'Diyanet İşleri Başkanlığı, Turkey',
+    'Spiritual Administration of Muslims of Russia',
+    'Moonsighting Committee Worldwide',
+  ];
 
   return (
     <ScrollView>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="0"
-          status={checked === '0' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('0')}
-        />
-        <Text style={styles.text}>Shia Ithna-Ansari</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="1"
-          status={checked === '1' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('1')}
-        />
-        <Text style={styles.text}>University of Islamic Sciences, Karachi</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="2"
-          status={checked === '2' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('2')}
-        />
-        <Text style={styles.text}>Islamic Society of North America</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="3"
-          status={checked === '3' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('3')}
-        />
-        <Text style={styles.text}>Muslim World League</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="4"
-          status={checked === '4' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('4')}
-        />
-        <Text style={styles.text}>Umm Al-Qura University, Makkah</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="5"
-          status={checked === '5' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('5')}
-        />
-        <Text style={styles.text}>Egyptian General Authority of Survey</Text>
-      </View>
-
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="7"
-          status={checked === '7' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('7')}
-        />
-        <Text style={styles.text}>
-          Institute of Geophysics, University of Tehran
-        </Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="8"
-          status={checked === '8' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('8')}
-        />
-        <Text style={styles.text}>Gulf Region</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="9"
-          status={checked === '9' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('9')}
-        />
-        <Text style={styles.text}>Kuwait</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="10"
-          status={checked === '10' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('10')}
-        />
-        <Text style={styles.text}>Qatar</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="11"
-          status={checked === '11' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('11')}
-        />
-        <Text style={styles.text}>Majlis Ugama Islam Singapura, Singapore</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="12"
-          status={checked === '12' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('12')}
-        />
-        <Text style={styles.text}>Union Organization islamic de France</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="13"
-          status={checked === '13' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('13')}
-        />
-        <Text style={styles.text}>Diyanet İşleri Başkanlığı, Turkey</Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="14"
-          status={checked === '14' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('14')}
-        />
-        <Text style={styles.text}>
-          Spiritual Administration of Muslims of Russia
-        </Text>
-      </View>
-      <View style={styles.prayStyle}>
-        <RadioButton
-          value="15"
-          status={checked === '15' ? 'checked' : 'unchecked'}
-          onPress={() => checkInternetStatus('15')}
-        />
-        <Text style={styles.text}>Moonsighting Committee Worldwide</Text>
-      </View>
+      {methods.map((element, index) =>
+        index != 6 ? (
+          <LinearGradient
+            colors={['#455A64', '#455A64']}
+            style={{...styles.prayStyle}}
+            key={index}>
+            <RadioButton
+              uncheckedColor="white"
+              color="#ffa500"
+              value={`${index}`}
+              status={checked === `${index}` ? 'checked' : 'unchecked'}
+              onPress={() => checkInternetStatus(`${index}`)}
+            />
+            <Text style={styles.text}>{element}</Text>
+          </LinearGradient>
+        ) : null,
+      )}
     </ScrollView>
   );
 };
@@ -173,12 +85,12 @@ export default method;
 const styles = StyleSheet.create({
   prayStyle: {
     flexDirection: 'row',
-    backgroundColor: '#aaa',
     margin: 10,
     padding: 10,
     borderRadius: 5,
   },
   text: {
+    paddingTop: 5,
     fontSize: 18,
     color: 'white',
   },

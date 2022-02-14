@@ -5,6 +5,19 @@ import {selectPray} from '../logic/database';
 import {checkDndAccess, requestDndAccess} from 'react-native-ringer-mode';
 import {useTranslation} from 'react-i18next';
 import {connect} from 'react-redux';
+import LinearGradient from 'react-native-linear-gradient';
+const colors = [
+  '#5D4037',
+  '#6D5047',
+  '#F2e201',
+  '#F2F201',
+  '#455A64',
+  '#455A64',
+  '#F57C00',
+  '#F57C00',
+  '#0253F1',
+  '#0243F1',
+];
 const reducer = (state, action) => {
   const callSelectPray = action.payload;
   const pray = action.type;
@@ -60,16 +73,19 @@ function MuteSettings(props) {
     }
   };
   return praysKeys.map((pray, index) => (
-    <View style={{...styles.prayStyle, flexDirection: direction}} key={index}>
+    <LinearGradient
+      colors={[colors[index * 2], colors[index * 2 + 1]]}
+      style={{...styles.prayStyle, flexDirection: direction}}
+      key={index}>
       <Text style={styles.text}>{praysNames[index]}</Text>
       <Switch
-        trackColor={{false: '#767577', true: '#81b0ff'}}
-        thumbColor={state[pray] ? '#f5dd4b' : '#f4f3f4'}
+        trackColor={{false: '#767577', true: '#388E3C'}}
+        thumbColor={state[pray] ? '#7B1FA2' : '#f4f3f4'}
         ios_backgroundColor="#3e3e3e"
         onValueChange={() => checkAccess(pray)}
         value={state[pray]}
       />
-    </View>
+    </LinearGradient>
   ));
 }
 
@@ -84,7 +100,6 @@ const styles = StyleSheet.create({
   prayStyle: {
     justifyContent: 'space-between',
     alignItems: 'space-between',
-    backgroundColor: '#aaa',
     margin: 10,
     padding: 10,
     borderRadius: 5,

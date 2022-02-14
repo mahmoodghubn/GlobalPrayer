@@ -131,11 +131,16 @@ function HomeScreen({praysData, navigation}) {
           ...styles.meanScreen,
           flexDirection: praysData.RTL ? 'row-reverse' : 'row',
         }}>
-        <Hour key={2} />
         <CircularProgress
           key={3}
           direction={praysData.RTL}
           prays={giveOrderedPrays(praysData.prays)}
+        />
+        <Hour
+          key={2}
+          style={{
+            ...styles.hour,
+          }}
         />
       </View>
       {praysData &&
@@ -157,8 +162,10 @@ function HomeScreen({praysData, navigation}) {
 const styles = StyleSheet.create({
   meanScreen: {
     margin: 20,
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  hour: {
+    marginStart: 20,
   },
 });
 const mapStateToProps = state => {
