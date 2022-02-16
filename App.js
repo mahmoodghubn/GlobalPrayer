@@ -11,7 +11,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import MuteSettings from './components/MuteSettings';
 import DrawerContent from './components/DrawerContent';
-import {fetchPraysRequest, store} from './store';
+import {fetchPraysRequest, store, changeStylesSides} from './store';
 import Method from './components/Method';
 import {LogBox} from 'react-native';
 import {Languages} from './RTL_support/Languages';
@@ -19,6 +19,8 @@ import {Provider} from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
 import HomeScreen from './components/HomeScreen';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
+LogBox.ignoreLogs(['[react-native-gesture-handler]']); // Ignore log notification by message
+import {useTranslation} from 'react-i18next';
 
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -47,7 +49,22 @@ const isPrayPassed = prayTime => {
 };
 
 const App = ({praysData, fetchPrays}) => {
+  const {t, i18n} = useTranslation();
+
   useEffect(() => {
+    async function fetchData() {
+      let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
+      if (!lan) {
+        lan = 'en';
+      }
+      i18n.changeLanguage(lan).then(() => {
+        if (lan === 'ar') {
+          store.dispatch(changeStylesSides(true));
+        } else {
+          store.dispatch(changeStylesSides(false));
+        }
+      });
+    }
     const requestLocationPermission = async () => {
       //   if (Platform.OS === 'ios') {
       //     getOneTimeLocation();
@@ -74,13 +91,26 @@ const App = ({praysData, fetchPrays}) => {
         console.warn(err);
       }
     };
+
+    fetchData();
     requestLocationPermission();
   }, []);
   const Drawer = createDrawerNavigator();
 
   return praysData.loading ? (
-    <View>
-      <Image source={require('./assets/aksa.jpg')} />
+    <View
+      style={{
+        width: '100%',
+        height: '100%',
+      }}>
+      <Image
+        source={require('./assets/aksa.png')}
+        style={{
+          resizeMode: 'cover',
+          width: '100%',
+          height: '100%',
+        }}
+      />
     </View>
   ) : praysData.error ? (
     <Text>{praysData.error}</Text>
@@ -88,7 +118,11 @@ const App = ({praysData, fetchPrays}) => {
     <Provider store={store}>
       <NavigationContainer>
         <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
-          <Drawer.Screen name="Global Prayer" component={HomeScreen} />
+          <Drawer.Screen
+            name="Global Prayer"
+            component={HomeScreen}
+            options={{headerShown: false}}
+          />
           <Drawer.Screen
             name="Mute"
             component={MuteSettings}

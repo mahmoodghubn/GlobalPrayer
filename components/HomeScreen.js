@@ -1,6 +1,6 @@
 import React, {useEffect, useReducer} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {changeStylesSides, store} from '../store';
+import {changeStylesSides, store, fetchPraysRequest} from '../store';
 import {View, StyleSheet} from 'react-native';
 import CircularProgress from './CircularProgress';
 import PushNotification from 'react-native-push-notification';
@@ -9,6 +9,7 @@ import Pray from './Pray';
 import {useTranslation} from 'react-i18next';
 import {testSchedule} from '../logic/notification';
 import {connect} from 'react-redux';
+import {Appbar} from 'react-native-paper';
 
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -46,27 +47,15 @@ const giveOrderedPrays = praysData => {
     praysData.Isha,
   ];
 };
+const reducer = (state, action) => {
+  const pray = action.type;
+  return {...state, [pray]: !state[pray]};
+};
 function HomeScreen({praysData, navigation}) {
   const {t, i18n} = useTranslation();
 
-  const reducer = (state, action) => {
-    const pray = action.type;
-    return {...state, [pray]: !state[pray]};
-  };
   useEffect(() => {
     async function fetchData() {
-      let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
-      if (!lan) {
-        lan = 'en';
-      }
-      i18n.changeLanguage(lan).then(() => {
-        if (lan === 'ar') {
-          store.dispatch(changeStylesSides(true));
-        } else {
-          store.dispatch(changeStylesSides(false));
-        }
-      });
-
       let pray;
       for (let i = 0; i < 6; i++) {
         pray = await AsyncStorage.getItem(praysNames[i]);
@@ -76,6 +65,9 @@ function HomeScreen({praysData, navigation}) {
       }
     }
     fetchData();
+    return () => {
+      store.dispatch(fetchPraysRequest());
+    };
   }, []);
 
   const defaultState = {
@@ -125,6 +117,10 @@ function HomeScreen({praysData, navigation}) {
   };
   return (
     <View key={0}>
+      <Appbar>
+        <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
+        <Appbar.Content title="Global Prayer" />
+      </Appbar>
       <View
         key={1}
         style={{

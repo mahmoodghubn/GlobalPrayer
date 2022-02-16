@@ -6,6 +6,7 @@ import {RadioButton} from 'react-native-paper';
 import {fetchNewData} from '../index';
 import Example from '../Example';
 import LinearGradient from 'react-native-linear-gradient';
+import {fetchPraysRequest, store} from '../store';
 
 const method = () => {
   const checkInternetStatus = value => {
@@ -24,6 +25,8 @@ const method = () => {
   const changeUrl = value => {
     setChecked(value);
     AsyncStorage.setItem('method', value);
+    store.dispatch(fetchPraysRequest());
+
     fetchNewData();
   };
 

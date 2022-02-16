@@ -80,7 +80,7 @@ export const MyHeadlessTask = async () => {
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
     const disBool = await getLocationDifference();
-    if (thisMonth == dateOfDatabase && !disBool) {
+    if (thisMonth == dateOfDatabase && disBool) {
       getSilentPrays();
 
       const day = new Date().getDate();
@@ -88,7 +88,7 @@ export const MyHeadlessTask = async () => {
       promise.then(
         dayPray => {
           startNotificationsFromBackground({...dayPray}, false);
-          // Example.stopService();
+          Example.stopService();
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
@@ -134,7 +134,7 @@ export const fetchNewData = async () => {
     });
 };
 const getLocationDifference = async () => {
-  if (AppState.currentState != 'background') {
+  if (AppState.currentState == 'background') {
     return true;
   } else {
     const currentLongitude = await AsyncStorage.getItem('longitude');
