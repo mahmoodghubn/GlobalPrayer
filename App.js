@@ -1,7 +1,17 @@
-import React, {useState, useEffect, useReducer, useMemo, memo} from 'react';
+import React, {useState, useEffect, useReducer, useRef} from 'react';
 import {testSchedule} from './logic/notification';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {PermissionsAndroid, View, Text, AppState, Image} from 'react-native';
+import {
+  PermissionsAndroid,
+  View,
+  Text,
+  AppState,
+  Image,
+  Platform,
+  Alert,
+  ToastAndroid,
+  AlertIOS,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
 import {connect} from 'react-redux';
@@ -21,9 +31,21 @@ import HomeScreen from './components/HomeScreen';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreLogs(['[react-native-gesture-handler]']); // Ignore log notification by message
 import {useTranslation} from 'react-i18next';
-
+import {getBundleId} from 'react-native-device-info';
+import IntentLauncher, {IntentConstant} from 'react-native-intent-launcher';
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
+const pack = getBundleId();
+const openAppSettings = () => {
+  if (Platform.OS === 'ios') {
+    Linking.openURL('app-settings:');
+  } else {
+    IntentLauncher.startActivity({
+      action: 'android.settings.APPLICATION_DETAILS_SETTINGS',
+      data: 'package:' + pack,
+    });
+  }
+};
 const getRemainSeconds = pray => {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
@@ -48,9 +70,41 @@ const isPrayPassed = prayTime => {
   return namazVakti > time;
 };
 
+const backFromSettings = appState => {
+  openAppSettings();
+  const subscription = AppState.addEventListener(
+    'change',
+    async nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        subscription.remove();
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          store.dispatch(fetchPraysRequest());
+          createTable();
+          Example.startService();
+        } else {
+          const msg = "Access didn't permitted";
+          if (Platform.OS === 'android') {
+            ToastAndroid.show(msg, ToastAndroid.SHORT);
+          } else {
+            AlertIOS.alert(msg);
+          }
+          Example.exitApp();
+        }
+      }
+
+      appState.current = nextAppState;
+    },
+  );
+};
 const App = ({praysData, fetchPrays}) => {
   const {t, i18n} = useTranslation();
-
+  const appState = useRef(AppState.currentState);
   useEffect(() => {
     async function fetchData() {
       let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
@@ -75,17 +129,20 @@ const App = ({praysData, fetchPrays}) => {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Location Access Required',
-            message: 'This App needs to Access your location',
-          },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           store.dispatch(fetchPraysRequest());
           createTable();
           Example.startService();
         } else {
-          // setLocationStatus('Permission Denied');
+          Alert.alert(
+            'Permission Error',
+            'press settings button and grant access to location',
+            [
+              {text: 'Settings', onPress: () => backFromSettings(appState)},
+              {text: 'Close app', onPress: () => Example.exitApp()},
+            ],
+          );
         }
       } catch (err) {
         console.warn(err);
@@ -124,7 +181,7 @@ const App = ({praysData, fetchPrays}) => {
             options={{headerShown: false}}
           />
           <Drawer.Screen
-            name="Mute"
+            name="Mute Settings"
             component={MuteSettings}
             options={({navigation}) => ({
               headerLeft: () => (
@@ -137,7 +194,7 @@ const App = ({praysData, fetchPrays}) => {
             })}
           />
           <Drawer.Screen
-            name="Method"
+            name="Methods"
             component={Method}
             options={({navigation}) => ({
               headerLeft: () => (

@@ -1,5 +1,5 @@
 import React, {Component, useState, useEffect, useReducer} from 'react';
-import {View, Text, StyleSheet, Switch} from 'react-native';
+import {View, Text, StyleSheet, Switch, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {selectPray} from '../logic/database';
 import {checkDndAccess, requestDndAccess} from 'react-native-ringer-mode';
@@ -67,7 +67,14 @@ function MuteSettings(props) {
     const hasDndAccess = await checkDndAccess();
 
     if (hasDndAccess === false) {
-      requestDndAccess();
+      Alert.alert(
+        'Need Ringer Access Permissions',
+        'press Ok to navigate to ringer mode settings',
+        [
+          {text: 'Ok', onPress: () => requestDndAccess()},
+          {text: 'Cancel', onPress: () => console.log('')},
+        ],
+      );
     } else {
       dispatch({type: pray, payload: true});
     }

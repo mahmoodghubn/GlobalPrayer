@@ -13,7 +13,8 @@ function DrawerContent({praysData, navigation}) {
     <View style={{flex: 1, textColor: 'black'}}>
       <Drawer.Section>
         <View style={{margin: 20}}>
-          <TouchableOpacity onPress={() => navigation.navigate('Mute')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Mute Settings')}>
             <View style={{flexDirection: flexDir}}>
               <Icon.Button
                 name="volume-high-outline"
@@ -24,7 +25,7 @@ function DrawerContent({praysData, navigation}) {
           </TouchableOpacity>
         </View>
         <View style={{margin: 20}}>
-          <TouchableOpacity onPress={() => navigation.navigate('Method')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Methods')}>
             <View style={{flexDirection: flexDir}}>
               <Icon.Button
                 name="planet-outline"

@@ -36,9 +36,9 @@ const Pray = props => {
         flexDirection: flexDir,
         backgroundColor: colors[index],
       }}>
-      <Text style={styles.text}>{pray}</Text>
+      <Text style={{...styles.text, paddingBottom: 5}}>{pray}</Text>
       <View style={{flexDirection: flexDir}}>
-        <Text style={styles.text}>{time}</Text>
+        <Text style={{...styles.text, paddingTop: 3}}>{time}</Text>
         {getIcon()}
       </View>
     </View>

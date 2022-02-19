@@ -24,6 +24,7 @@ import androidx.work.WorkManager;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -119,7 +120,11 @@ public class ExampleModule extends ReactContextBaseJavaModule {
         int requestCodeSoundAlarm = requestCodeQuietAlarm + 5;
         if (bool) {
             int quietHour = Integer.parseInt(prayTime.substring(0, 2));
-            int quietMinute = Integer.parseInt(prayTime.substring(3, 5));
+            int quietMinute = Integer.parseInt(prayTime.substring(3, 5)) + 2;
+            if (quietMinute > 59) {
+                quietMinute = quietMinute - 60;
+                quietHour++;
+            }
             int soundMinute = quietMinute + 15;
             int soundHour = quietHour;
             if (soundMinute > 59) {
@@ -160,9 +165,13 @@ public class ExampleModule extends ReactContextBaseJavaModule {
             requestCodeSoundAlarm = requestCodeQuietAlarm + 5;
             assert prayTime != null;
             quietHour = Integer.parseInt(prayTime.substring(0, 2));
-            quietMinute = Integer.parseInt(prayTime.substring(3, 5));
+            quietMinute = Integer.parseInt(prayTime.substring(3, 5)) + 2;
             soundMinute = quietMinute + 15;
             soundHour = quietHour;
+            if (quietMinute > 59) {
+                quietMinute = quietMinute - 60;
+                quietHour++;
+            }
             if (soundMinute > 59) {
                 soundMinute = soundMinute - 60;
                 soundHour++;
@@ -171,7 +180,7 @@ public class ExampleModule extends ReactContextBaseJavaModule {
             setSoundAlarm(soundHour, soundMinute, requestCodeSoundAlarm);
         }
         reactContext.stopService(new Intent(reactContext, ExampleService.class));
-        
+
     }
 
     @ReactMethod
@@ -218,4 +227,11 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     }
 
+    @ReactMethod
+
+    public void exitApp() {
+
+        Objects.requireNonNull(getCurrentActivity()).finishAndRemoveTask();
+
+    }
 }

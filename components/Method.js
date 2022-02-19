@@ -14,7 +14,7 @@ const method = () => {
       if (state.isConnected) {
         changeUrl(value);
       } else {
-        Alert.alert('Internet Error', 'press Ok to retry', [
+        Alert.alert('Internet Error', 'there is no internet connection', [
           {text: 'OK', onPress: () => console.log('OK Pressed')},
         ]);
       }
