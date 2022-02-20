@@ -130,6 +130,7 @@ export const fetchNewData = async () => {
     })
     .catch(error => {
       const errorMsg = error.message;
+      Example.stopService();
       store.dispatch(fetchPraysFailure(errorMsg));
     });
 };

@@ -11,6 +11,8 @@ import {
   Alert,
   ToastAndroid,
   AlertIOS,
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Example from './Example';
@@ -102,6 +104,11 @@ const backFromSettings = appState => {
     },
   );
 };
+
+const fetchData = () => {
+  store.dispatch(fetchPraysRequest());
+  Example.startService();
+};
 const App = ({praysData, fetchPrays}) => {
   const {t, i18n} = useTranslation();
   const appState = useRef(AppState.currentState);
@@ -170,7 +177,13 @@ const App = ({praysData, fetchPrays}) => {
       />
     </View>
   ) : praysData.error ? (
-    <Text>{praysData.error}</Text>
+    <View style={style.error}>
+      <Text style={style.text1}>OOPS!</Text>
+      <Text style={style.text2}>{praysData.error}</Text>
+      <TouchableOpacity style={style.button} onPress={() => fetchData()}>
+        <Text style={style.text2}>retry</Text>
+      </TouchableOpacity>
+    </View>
   ) : (
     <Provider store={store}>
       <NavigationContainer>
@@ -262,3 +275,27 @@ export const startNotificationsFromBackground = async (prays, bool) => {
     }
   }
 };
+const style = StyleSheet.create({
+  error: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text1: {
+    fontSize: 40,
+    color: 'red',
+  },
+  text2: {
+    fontSize: 25,
+    color: 'red',
+  },
+  button: {
+    backgroundColor: 'white',
+    margin: 20,
+    borderColor: 'red',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+});

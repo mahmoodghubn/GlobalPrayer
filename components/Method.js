@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
   },
   text: {
     paddingTop: 5,
+    marginRight: 10,
     fontSize: 18,
     color: 'white',
   },
