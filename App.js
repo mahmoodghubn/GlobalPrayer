@@ -62,7 +62,7 @@ const getRemainSeconds = pray => {
   }
 };
 
-const isPrayPassed = prayTime => {
+const isPrayWaiting = prayTime => {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const time = minute + hour * 60;
@@ -252,26 +252,22 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 
-export const startNotificationsFromBackground = async (prays, bool) => {
-  //bool means user has changed the method
+export const startNotifications = async prays => {
   let alarm;
   let prayTime;
-  if (AppState.currentState == 'background' || bool) {
-    for (let i = 0; i < 6; i++) {
-      try {
-        alarm = await AsyncStorage.getItem(praysNames[i]);
-        prayTime = prays[praysNames[i]];
-        if (alarm == 'true' && isPrayPassed(prayTime)) {
-          testSchedule(
-            new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
-            //do the notification override the old one
-            praysNames[i],
-            i,
-          );
-        }
-      } catch (error) {
-        console.log(error.message);
+  for (let i = 0; i < 6; i++) {
+    try {
+      alarm = await AsyncStorage.getItem(praysNames[i]);
+      prayTime = prays[praysNames[i]];
+      if (alarm == 'true' && isPrayWaiting(prayTime)) {
+        testSchedule(
+          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
+          praysNames[i],
+          i,
+        );
       }
+    } catch (error) {
+      console.log(error.message);
     }
   }
 };

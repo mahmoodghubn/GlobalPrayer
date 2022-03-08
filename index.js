@@ -21,7 +21,7 @@ import {
 } from './store';
 import Example from './Example';
 import PushNotification, {Importance} from 'react-native-push-notification';
-import {startNotificationsFromBackground} from './App';
+import {startNotifications} from './App';
 import buildUrl from './logic/buildUrl';
 import './RTL_support/index';
 import {getDistance, getPreciseDistance} from 'geolib';
@@ -52,15 +52,14 @@ PushNotification.configure({
   popInitialNotification: true,
   requestPermissions: Platform.OS === 'ios',
 });
-
+const SilentList = [
+  'FajrSilent',
+  'DhuhrSilent',
+  'AsrSilent',
+  'MaghribSilent',
+  'IshaSilent',
+];
 const getSilentPrays = async () => {
-  const SilentList = [
-    'FajrSilent',
-    'DhuhrSilent',
-    'AsrSilent',
-    'MaghribSilent',
-    'IshaSilent',
-  ];
   const praysNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   let silentPray;
   let SilentPrays = [];
@@ -76,6 +75,9 @@ const getSilentPrays = async () => {
 };
 
 export const MyHeadlessTask = async () => {
+  if (AppState.currentState != 'background') {
+    Example.stopService();
+  }
   try {
     const dateOfDatabase = await AsyncStorage.getItem('database_month');
     const thisMonth = new Date().getMonth();
@@ -87,8 +89,7 @@ export const MyHeadlessTask = async () => {
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotificationsFromBackground({...dayPray}, false);
-          Example.stopService();
+          startNotifications({...dayPray});
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
@@ -102,6 +103,12 @@ export const MyHeadlessTask = async () => {
 };
 
 export const fetchNewData = async () => {
+  let silentPray;
+  let MutePrays = [];
+  for (let i = 0; i < 5; i++) {
+    silentPray = await AsyncStorage.getItem(SilentList[i]);
+    MutePrays.push(silentPray);
+  }
   const url = await buildUrl();
   axios
     .get(url)
@@ -115,11 +122,19 @@ export const fetchNewData = async () => {
       let Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha;
       let prayDay = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
       let prayer = {};
+      let SilentPrays = {};
+      let index = 0;
       for (key in prayDay) {
         prayer[key] = timings[key].slice(0, 5);
+        if (key != 'Sunrise') {
+          if (MutePrays[index] == 'true') {
+            SilentPrays[key] = timings[key].slice(0, 5);
+          }
+          index++;
+        }
       }
-      startNotificationsFromBackground({...prayer}, true);
-      getSilentPrays();
+      startNotifications({...prayer});
+      Example.setDailyMute(SilentPrays);
 
       AsyncStorage.setItem(
         'database_month',
@@ -130,7 +145,6 @@ export const fetchNewData = async () => {
     })
     .catch(error => {
       const errorMsg = error.message;
-      Example.stopService();
       store.dispatch(fetchPraysFailure(errorMsg));
     });
 };
@@ -181,6 +195,4 @@ const RNRedux = () => (
 
 AppRegistry.registerHeadlessTask('Example', () => MyHeadlessTask);
 AppRegistry.registerComponent(appName, () => RNRedux);
-// WARN  registerHeadlessTask or registerCancellableHeadlessTask called multiple times for same key 'Example'
-//yarn start --reset-cache
-//error messagenear "FROM": syntax error (code 1 SQLITE_ERROR[1]): , while compiling: SELECT  FROM PrayTable WHERE ID = 13
+//    "react-native-log-to-file": "^1.0.3",

@@ -90,13 +90,13 @@ function HomeScreen({praysData, navigation}) {
   ];
 
   const dispatcher = (type, payload) => {
+    const prayTime = payload;
+    const pray = type;
     const bool = !state[pray];
     send({
       type: type,
     });
-    const prayTime = payload;
-    const pray = type;
-    AsyncStorage.setItem(pray, JSON.stringify(!state[pray]));
+    AsyncStorage.setItem(pray, JSON.stringify(bool));
     if (prayTime && isPrayPassed(prayTime)) {
       let id = 0;
       for (let i = 0; i < 6; i++) {

@@ -20,12 +20,8 @@ export const createTable = async () => {
         'PrayTable ' +
         '(ID INTEGER PRIMARY KEY, Fajr INTEGER , Sunrise INTEGER, Dhuhr INTEGER, Asr INTEGER, Maghrib INTEGER, Isha INTEGER)',
       [],
-      (tx, results) => {
-        console.log('data base created succuessfully');
-      },
-      error => {
-        console.log('error' + error.message);
-      },
+      (tx, results) => {},
+      error => {},
     );
   });
 };
@@ -47,7 +43,6 @@ export const getMonthPrayingTimes = async data => {
     let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
     await insert(i + 1, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);
   }
-  Example.stopService();
 };
 
 const insert = async (ID, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
@@ -60,7 +55,6 @@ const insert = async (ID, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
           resolve(result);
         },
         error => {
-          console.log('error in inserting' + error.message);
           reject(error);
         },
       );
@@ -80,7 +74,6 @@ export const select = day => {
         },
         error => {
           reject(error);
-          console.log('error message' + error.message);
         },
       );
     });
@@ -97,9 +90,7 @@ export const selectPray = (pray, bool) => {
         const prayTime = res.rows.item(0);
         Example.setMuteOnPray(pray, prayTime[pray], bool);
       },
-      error => {
-        console.log('error message' + error.message);
-      },
+      error => {},
     );
   });
 };
@@ -114,9 +105,7 @@ export const selectPrays = pray => {
         const prayTime = res.rows.item(0);
         Example.setDailyMute(prayTime);
       },
-      error => {
-        console.log('error message' + error.message);
-      },
+      error => {},
     );
   });
 };
