@@ -34,18 +34,23 @@ export const getMonthPrayingTimes = async data => {
   if (year % 4 == 0 && mon == 1) {
     days = 29;
   }
+  let Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha;
+  let prayDay = {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha};
+  let prayer = {};
+  let data2;
+  let timings;
   for (let i = 0; i < days; i++) {
-    let data2 = data[i];
-    let {timings} = {...data2};
-    for (key in timings) {
-      timings[key] = timings[key].slice(0, 5);
+    data2 = data[i];
+    timings = data2['timings'];
+    for (key in prayDay) {
+      prayer[key] = timings[key].slice(0, 5);
     }
-    let {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha} = {...timings};
-    await insert(i + 1, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha);
+    await insert(i + 1, {...prayer});
   }
+  Example.stopService();
 };
 
-const insert = async (ID, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) => {
+const insert = async (ID, {Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha}) => {
   return new Promise(function (resolve, reject) {
     db.transaction(async tx => {
       tx.executeSql(

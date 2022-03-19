@@ -8,7 +8,7 @@ import Example from '../Example';
 import LinearGradient from 'react-native-linear-gradient';
 import {fetchPraysRequest, store} from '../store';
 
-const method = () => {
+const Method = () => {
   const checkInternetStatus = value => {
     NetInfo.fetch().then(state => {
       if (state.isConnected) {
@@ -84,7 +84,7 @@ const method = () => {
   );
 };
 
-export default method;
+export default Method;
 const styles = StyleSheet.create({
   prayStyle: {
     flexDirection: 'row',

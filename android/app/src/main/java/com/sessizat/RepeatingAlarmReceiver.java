@@ -8,7 +8,11 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-
+//import androidx.work.BackoffPolicy;
+//import androidx.work.OneTimeWorkRequest;
+//import androidx.work.WorkManager;
+//import java.util.concurrent.TimeUnit;
+//import static com.sessizat.ExampleModule.reactContext;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -18,6 +22,14 @@ import static android.content.Context.ALARM_SERVICE;
 public class RepeatingAlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+//        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(WorkerExample.class)
+//                .setBackoffCriteria(
+//                        BackoffPolicy.LINEAR,
+//                        15,
+//                        TimeUnit.MINUTES)
+//                .build();
+//
+//        WorkManager.getInstance(reactContext).enqueue(oneTimeWorkRequest);
         boolean foreground = false;
         try {
             foreground = new ForegroundCheckTask().execute(context).get();
@@ -39,28 +51,31 @@ public class RepeatingAlarmReceiver extends BroadcastReceiver {
                 AlarmManager alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
                 Intent intent1 = new Intent(context, RepeatingAlarmReceiver.class);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 100, intent1, PendingIntent.FLAG_ONE_SHOT);
-                alarmManager.setExact(AlarmManager.RTC, cal.getTimeInMillis() + 15 * 60 * 1000, pendingIntent);
+                alarmManager.setWindow(AlarmManager.RTC, cal.getTimeInMillis() + 15 * 60 * 1000, 10 * 60 * 1000, pendingIntent);
                 return;
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(new Intent(context, ExampleService.class));
+                setNewAlarm(context);
                 return;
             }
         }
 
         context.startService(new Intent(context, ExampleService.class));
-
-        AlarmManager everydayAlarmManager;
-        PendingIntent everydayPendingIntent;
-        everydayAlarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
-        Intent everydayIntent = new Intent(context, RepeatingAlarmReceiver.class);
-        everydayPendingIntent = PendingIntent.getBroadcast(context, 100, everydayIntent, PendingIntent.FLAG_ONE_SHOT);
-        everydayAlarmManager.set(AlarmManager.RTC, getNextDay().getTimeInMillis(), everydayPendingIntent);
+        setNewAlarm(context);
 
     }
 
-    private Calendar getNextDay(){
+    private void setNewAlarm(Context context) {
+        AlarmManager everydayAlarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
+        Intent everydayIntent = new Intent(context, RepeatingAlarmReceiver.class);
+        PendingIntent everydayPendingIntent = PendingIntent.getBroadcast(context, 100, everydayIntent, PendingIntent.FLAG_ONE_SHOT);
+        everydayAlarmManager.setWindow(AlarmManager.RTC, getNextDay().getTimeInMillis(), 60 * 60 * 1000, everydayPendingIntent);
+
+    }
+
+    private Calendar getNextDay() {
 
         Date date = new Date();   // given date
         Calendar cal = Calendar.getInstance();
@@ -75,14 +90,14 @@ public class RepeatingAlarmReceiver extends BroadcastReceiver {
         }
         int nextYear = year;
         int nextMonth = mon;
-        int nextDay = day+1;
-        if(day == days){
+        int nextDay = day + 1;
+        if (day == days) {
             nextDay = 1;
-            nextMonth = mon +1;
+            nextMonth = mon + 1;
         }
-        if (nextMonth == 12){
-            nextMonth =0;
-            nextYear = year+1;
+        if (nextMonth == 12) {
+            nextMonth = 0;
+            nextYear = year + 1;
         }
         Calendar everydayCalendar;
         everydayCalendar = Calendar.getInstance();

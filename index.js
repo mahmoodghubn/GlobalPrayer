@@ -89,7 +89,7 @@ export const MyHeadlessTask = async () => {
       let promise = select(day);
       promise.then(
         dayPray => {
-          startNotifications({...dayPray});
+          startNotifications({...dayPray}, true);
           store.dispatch(fetchPraysSuccess({...dayPray}));
         },
         // error => alert(`Error: ${error.message}`)
@@ -133,7 +133,7 @@ export const fetchNewData = async () => {
           index++;
         }
       }
-      startNotifications({...prayer});
+      startNotifications({...prayer}, false);
       Example.setDailyMute(SilentPrays);
 
       AsyncStorage.setItem(

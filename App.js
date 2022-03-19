@@ -252,7 +252,7 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 
-export const startNotifications = async prays => {
+export const startNotifications = async (prays, bool) => {
   let alarm;
   let prayTime;
   for (let i = 0; i < 6; i++) {
@@ -269,6 +269,9 @@ export const startNotifications = async prays => {
     } catch (error) {
       console.log(error.message);
     }
+  }
+  if (bool) {
+    Example.stopService();
   }
 };
 const style = StyleSheet.create({
