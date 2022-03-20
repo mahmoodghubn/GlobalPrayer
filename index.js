@@ -98,7 +98,9 @@ export const MyHeadlessTask = async () => {
       fetchNewData();
     }
   } catch (error) {
-    console.log(error.message);
+    Example.stopService();
+    const errorMsg = error.message;
+    store.dispatch(fetchPraysFailure(errorMsg));
   }
 };
 
@@ -144,6 +146,7 @@ export const fetchNewData = async () => {
       store.dispatch(fetchPraysSuccess({...prayer}));
     })
     .catch(error => {
+      Example.stopService();
       const errorMsg = error.message;
       store.dispatch(fetchPraysFailure(errorMsg));
     });

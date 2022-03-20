@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nonnull;
 
@@ -155,6 +156,15 @@ public class ExampleModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startService() {
+        boolean foreground = false;
+        try {
+            foreground = new ForegroundCheckTask().execute(reactContext).get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (foreground) {
+            reactContext.startService(new Intent(reactContext, ExampleService.class));
+        }
         calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 10);
@@ -163,7 +173,8 @@ public class ExampleModule extends ReactContextBaseJavaModule {
         alarmManager = (AlarmManager) reactContext.getSystemService(ALARM_SERVICE);
         Intent intent = new Intent(reactContext, RepeatingAlarmReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(reactContext, 100, intent, PendingIntent.FLAG_ONE_SHOT);
-        alarmManager.setExact(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+        alarmManager.setWindow(AlarmManager.RTC, calendar.getTimeInMillis(), 60 * 60 * 1000, pendingIntent);
+
     }
 
     @ReactMethod
