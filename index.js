@@ -1,18 +1,18 @@
 import 'react-native-gesture-handler';
-import {AppRegistry} from 'react-native';
-import App from './App';
+import React from 'react';
+import {AppRegistry, AppState} from 'react-native';
+import {Provider} from 'react-redux';
 import {name as appName} from './app.json';
 import axios from 'axios';
-import {
-  select,
-  deleteTable,
-  getMonthPrayingTimes,
-  selectPrays,
-} from './logic/database';
+import {getDistance, getPreciseDistance} from 'geolib';
+import Geolocation from '@react-native-community/geolocation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useState} from 'react';
-import React from 'react';
-import {Provider} from 'react-redux';
+import PushNotification from 'react-native-push-notification';
+import {select, getMonthPrayingTimes, selectPrays} from './logic/database';
+import {testSchedule} from './logic/notification';
+import buildUrl from './logic/buildUrl';
+import {isPrayWaiting, getRemainSeconds} from './components/HomeScreen';
+import './RTL_support/index';
 import {
   fetchPraysRequest,
   fetchPraysSuccess,
@@ -20,13 +20,7 @@ import {
   store,
 } from './store';
 import Example from './Example';
-import PushNotification, {Importance} from 'react-native-push-notification';
-import {startNotifications} from './App';
-import buildUrl from './logic/buildUrl';
-import './RTL_support/index';
-import {getDistance, getPreciseDistance} from 'geolib';
-import Geolocation from '@react-native-community/geolocation';
-import {AppState} from 'react-native';
+import App from './App';
 
 PushNotification.configure({
   onRegister: function (token) {
@@ -52,6 +46,7 @@ PushNotification.configure({
   popInitialNotification: true,
   requestPermissions: Platform.OS === 'ios',
 });
+
 const SilentList = [
   'FajrSilent',
   'DhuhrSilent',
@@ -59,6 +54,7 @@ const SilentList = [
   'MaghribSilent',
   'IshaSilent',
 ];
+
 const getSilentPrays = async () => {
   const praysNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   let silentPray;
@@ -151,6 +147,7 @@ export const fetchNewData = async () => {
       store.dispatch(fetchPraysFailure(errorMsg));
     });
 };
+
 const getLocationDifference = async () => {
   if (AppState.currentState == 'background') {
     return true;
@@ -190,6 +187,28 @@ const getLocationDifference = async () => {
   }
 };
 
+const startNotifications = async (prays, bool) => {
+  let alarm;
+  let prayTime;
+  for (let i = 0; i < 6; i++) {
+    try {
+      alarm = await AsyncStorage.getItem(praysNames[i]);
+      prayTime = prays[praysNames[i]];
+      if (alarm == 'true' && isPrayWaiting(prayTime)) {
+        testSchedule(
+          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
+          praysNames[i],
+          i,
+        );
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  if (bool) {
+    Example.stopService();
+  }
+};
 const RNRedux = () => (
   <Provider store={store}>
     <App />
@@ -199,3 +218,5 @@ const RNRedux = () => (
 AppRegistry.registerHeadlessTask('Example', () => MyHeadlessTask);
 AppRegistry.registerComponent(appName, () => RNRedux);
 //    "react-native-log-to-file": "^1.0.3",
+//@babel/preset-typescript
+//react-native-cli

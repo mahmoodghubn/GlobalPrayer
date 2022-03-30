@@ -1,19 +1,19 @@
 import React, {useEffect, useReducer} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {changeStylesSides, store, fetchPraysRequest} from '../store';
 import {View, StyleSheet} from 'react-native';
-import CircularProgress from './CircularProgress';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PushNotification from 'react-native-push-notification';
+import {useTranslation} from 'react-i18next';
+import {Appbar} from 'react-native-paper';
+import {connect} from 'react-redux';
+import {changeStylesSides, store, fetchPraysRequest} from '../store';
+import CircularProgress from './CircularProgress';
 import Hour from './Hour';
 import Pray from './Pray';
-import {useTranslation} from 'react-i18next';
 import {testSchedule} from '../logic/notification';
-import {connect} from 'react-redux';
-import {Appbar} from 'react-native-paper';
 
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-const getRemainSeconds = pray => {
+export const getRemainSeconds = pray => {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const time = minute * 60 + hour * 3600;
@@ -27,7 +27,7 @@ const getRemainSeconds = pray => {
   }
 };
 
-const isPrayPassed = prayTime => {
+export const isPrayWaiting = prayTime => {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const time = minute + hour * 60;
@@ -97,7 +97,7 @@ function HomeScreen({praysData, navigation}) {
       type: type,
     });
     AsyncStorage.setItem(pray, JSON.stringify(bool));
-    if (prayTime && isPrayPassed(prayTime)) {
+    if (prayTime && isPrayWaiting(prayTime)) {
       let id = 0;
       for (let i = 0; i < 6; i++) {
         if (pray == praysNames[i]) {

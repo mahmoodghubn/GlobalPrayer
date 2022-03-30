@@ -4,20 +4,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import nextPray from '../logic/nextPray';
 import {useTranslation} from 'react-i18next';
 import {connect} from 'react-redux';
-
-const getRemainSeconds = pray => {
-  const hour = new Date().getHours();
-  const minute = new Date().getMinutes();
-  const time = minute * 60 + hour * 3600;
-  const prayHour = parseInt(pray.slice(0, 2));
-  const prayMinute = parseInt(pray.slice(3, 5));
-  const prayTime = prayHour * 3600 + prayMinute * 60;
-  if (time < prayTime) {
-    return prayTime - time;
-  } else {
-    return 24 * 3600 - time + prayTime;
-  }
-};
+import {getRemainSeconds} from './HomeScreen';
 
 const fromSecondsToHour = seconds => {
   let parameter = seconds % 3600;

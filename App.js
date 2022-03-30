@@ -1,5 +1,4 @@
 import React, {useState, useEffect, useReducer, useRef} from 'react';
-import {testSchedule} from './logic/notification';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   PermissionsAndroid,
@@ -13,28 +12,27 @@ import {
   AlertIOS,
   StyleSheet,
   TouchableOpacity,
+  LogBox,
 } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {getBundleId} from 'react-native-device-info';
+import {Provider} from 'react-redux';
+import Geolocation from '@react-native-community/geolocation';
+import IntentLauncher from 'react-native-intent-launcher';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Example from './Example';
 import {connect} from 'react-redux';
-import {MyHeadlessTask} from './index';
-import {createTable} from './logic/database';
 import {NavigationContainer} from '@react-navigation/native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import Example from './Example';
+import {createTable} from './logic/database';
 import MuteSettings from './components/MuteSettings';
 import DrawerContent from './components/DrawerContent';
 import {fetchPraysRequest, store, changeStylesSides} from './store';
 import Method from './components/Method';
-import {LogBox} from 'react-native';
 import {Languages} from './RTL_support/Languages';
-import {Provider} from 'react-redux';
-import Geolocation from '@react-native-community/geolocation';
 import HomeScreen from './components/HomeScreen';
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreLogs(['[react-native-gesture-handler]']); // Ignore log notification by message
-import {useTranslation} from 'react-i18next';
-import {getBundleId} from 'react-native-device-info';
-import IntentLauncher, {IntentConstant} from 'react-native-intent-launcher';
 const praysNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
 const pack = getBundleId();
@@ -47,29 +45,6 @@ const openAppSettings = () => {
       data: 'package:' + pack,
     });
   }
-};
-const getRemainSeconds = pray => {
-  const hour = new Date().getHours();
-  const minute = new Date().getMinutes();
-  const time = minute * 60 + hour * 3600;
-  const prayHour = parseInt(pray.slice(0, 2));
-  const prayMinute = parseInt(pray.slice(3, 5));
-  const prayTime = prayHour * 3600 + prayMinute * 60;
-  if (time < prayTime) {
-    return prayTime - time;
-  } else {
-    return 24 * 3600 - time + prayTime;
-  }
-};
-
-const isPrayWaiting = prayTime => {
-  const hour = new Date().getHours();
-  const minute = new Date().getMinutes();
-  const time = minute + hour * 60;
-  const prayHour = parseInt(prayTime.slice(0, 2));
-  const prayMinute = parseInt(prayTime.slice(3, 5));
-  const namazVakti = prayHour * 60 + prayMinute;
-  return namazVakti > time;
 };
 
 const backFromSettings = appState => {
@@ -109,11 +84,12 @@ const fetchData = () => {
   store.dispatch(fetchPraysRequest());
   Example.startService();
 };
-const App = ({praysData, fetchPrays}) => {
+
+const App = ({praysData}) => {
   const {t, i18n} = useTranslation();
   const appState = useRef(AppState.currentState);
   useEffect(() => {
-    async function fetchData() {
+    async function fetch() {
       let lan = await AsyncStorage.getItem('I18N_LANGUAGE');
       if (!lan) {
         lan = 'en';
@@ -156,7 +132,7 @@ const App = ({praysData, fetchPrays}) => {
       }
     };
 
-    fetchData();
+    fetch();
     requestLocationPermission();
   }, []);
   const Drawer = createDrawerNavigator();
@@ -244,36 +220,8 @@ const mapStateToProps = state => {
   };
 };
 
-const mapDispatchToProps = dispatch => {
-  return {
-    fetchPrays: () => dispatch(MyHeadlessTask()),
-  };
-};
+export default connect(mapStateToProps)(App);
 
-export default connect(mapStateToProps, mapDispatchToProps)(App);
-
-export const startNotifications = async (prays, bool) => {
-  let alarm;
-  let prayTime;
-  for (let i = 0; i < 6; i++) {
-    try {
-      alarm = await AsyncStorage.getItem(praysNames[i]);
-      prayTime = prays[praysNames[i]];
-      if (alarm == 'true' && isPrayWaiting(prayTime)) {
-        testSchedule(
-          new Date(Date.now() + getRemainSeconds(prayTime) * 1000),
-          praysNames[i],
-          i,
-        );
-      }
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
-  if (bool) {
-    Example.stopService();
-  }
-};
 const style = StyleSheet.create({
   error: {
     flex: 1,
