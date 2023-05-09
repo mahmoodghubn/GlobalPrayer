@@ -5,3 +5,5 @@ apply from: file("../node_modules/@react-native-community/cli-platform-android/n
 include ':react-native-push-notification'
 project(':react-native-push-notification').projectDir = file('../node_modules/react-native-push-notification/android')
 include ':app'
+includeBuild '../node_modules/react-native-gradle-plugin'
+

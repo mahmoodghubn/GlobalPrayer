@@ -1,7 +1,9 @@
 apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+
 // apply plugin: 'com.google.gms.google-services'
 
-import com.android.build.OutputFile
+//import com.android.build.OutputFile
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -127,6 +129,7 @@ def enableHermes = project.ext.react.get("enableHermes", false);
 def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
 
 android {
+    namespace 'com.sessizat'
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -141,6 +144,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+    }
+    buildFeatures {
+        buildConfig = true
     }
     splits {
         abi {
@@ -183,7 +189,7 @@ android {
             // https://developer.android.com/studio/build/configure-apk-splits.html
             // Example: versionCode 1 will generate 1001 for armeabi-v7a, 1002 for x86, etc.
             def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
                         defaultConfig.versionCode * 1000 + versionCodes.get(abi)
@@ -214,9 +220,9 @@ dependencies {
     }
 
     if (enableHermes) {
-        def hermesPath = "../../node_modules/hermes-engine/android/";
-        debugImplementation files(hermesPath + "hermes-debug.aar")
-        releaseImplementation files(hermesPath + "hermes-release.aar")
+        implementation("com.facebook.react:hermes-engine:+") {
+            exclude group: 'com.facebook.fbjni'
+        }
     } else {
         implementation jscFlavor
     }
